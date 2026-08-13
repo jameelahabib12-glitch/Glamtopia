@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Write a Review</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 550px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 13px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <h1>Write a Review ⭐</h1>
+
+
+    <form id="reviewForm">
+
+
+        <label for="bookingId">
+            Booking ID
+        </label>
+
+        <input
+            type="text"
+            id="bookingId"
+            placeholder="Enter Booking ID"
+            required
+        >
+
+
+        <label for="rating">
+            Rating
+        </label>
+
+        <select id="rating" required>
+
+            <option value="">
+                Select Rating
+            </option>
+
+            <option value="5">
+                ⭐⭐⭐⭐⭐ Excellent
+            </option>
+
+            <option value="4">
+                ⭐⭐⭐⭐ Very Good
+            </option>
+
+            <option value="3">
+                ⭐⭐⭐ Good
+            </option>
+
+            <option value="2">
+                ⭐⭐ Poor
+            </option>
+
+            <option value="1">
+                ⭐ Very Poor
+            </option>
+
+        </select>
+
+
+        <label for="comment">
+            Comment
+        </label>
+
+        <textarea
+            id="comment"
+            placeholder="Write your experience..."
+        ></textarea>
+
+
+        <button type="submit">
+            Submit Review
+        </button>
+
+    </form>
+
+
+    <div id="message"></div>
+
+</div>
+
+
+<script src="review.js"></script>
+
+</body>
+
+</html>
