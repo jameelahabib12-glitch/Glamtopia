@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glamtopia - Provider Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glamCream: '#f6f0d7',
+                        glamLightSage: '#c5d89d',
+                        glamSage: '#9cab84',
+                        glamOlive: '#89986d',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Glassmorphism & Transition Styles */
+        .glass-card {
+            background: rgba(246, 240, 215, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(156, 171, 132, 0.3);
+        }
+        .glass-card-opaque {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-glamCream text-glamOlive min-h-screen font-sans selection:bg-glamLightSage selection:text-glamOlive">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-card border-b border-glamSage/20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl font-bold tracking-tight text-glamOlive">✨ Glamtopia</span>
+                <span class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-glamLightSage text-glamOlive rounded-full">Provider Portal</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium hidden md:inline">Welcome, <strong id="providerName">Amina's Salon</strong></span>
+                <button class="text-sm font-medium px-4 py-2 rounded-lg bg-glamOlive text-glamCream hover:bg-glamSage transition-all shadow-md">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Dashboard Overview Metrics Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Pending Requests</p>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">3</h3>
+                <p class="text-xs text-glamOlive/70 mt-1">Require confirmation</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Confirmed Bookings</p>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">12</h3>
+                <p class="text-xs text-glamOlive/70 mt-1">Upcoming appointments</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Average Rating</p>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive flex items-center">4.9 <span class="text-yellow-600 text-xl ml-1">★</span></h3>
+                <p class="text-xs text-glamOlive/70 mt-1">From verified reviews</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Active Services</p>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">5</h3>
+                <p class="text-xs text-glamOlive/70 mt-1">Listed on storefront</p>
+            </div>
+        </section>
+
+        <!-- Main Workspace Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2 Columns: Incoming Bookings & Schedule Management -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Bookings Management Section -->
+                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b border-glamSage/20 gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-glamOlive">Incoming & Upcoming Bookings</h2>
+                            <p class="text-sm text-glamOlive/70">Manage client reservations and confirm pending requests.</p>
+                        </div>
+                        <div class="flex space-x-2 w-full sm:w-auto" id="bookingTabs">
+                            <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-glamLightSage text-glamOlive shadow-sm">All</button>
+                            <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Pending</button>
+                            <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Confirmed</button>
+                            <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Completed</button>
+                        </div>
+                    </div>
+
+                    <!-- Bookings List -->
+                    <div class="space-y-4" id="bookingsListContainer">
+                        <!-- Pending Booking -->
+                        <div class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-glamOlive">Bridal Glam Makeup</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 rounded-full">Pending</span>
+                                </div>
+                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Sarah Ahmed</span></p>
+                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 16, 2026 — 02:00 PM (1 Hour)</p>
+                            </div>
+                            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                                <button class="px-3 py-1.5 text-xs font-semibold bg-glamOlive text-glamCream rounded-lg hover:bg-glamSage transition-all shadow-sm">Confirm Booking</button>
+                            </div>
+                        </div>
+
+                        <!-- Confirmed Booking -->
+                        <div class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-glamOlive">Party Makeup</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 rounded-full">Confirmed</span>
+                                </div>
+                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Zara Ali</span></p>
+                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 17, 2026 — 10:00 AM (1 Hour)</p>
+                            </div>
+                            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                                <button class="px-3 py-1.5 text-xs font-semibold bg-glamLightSage text-glamOlive rounded-lg transition-all shadow-sm">Mark Completed</button>
+                            </div>
+                        </div>
+
+                        <!-- Completed Booking -->
+                        <div class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-glamOlive">Keratin Hair Treatment</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800 rounded-full">Completed</span>
+                                </div>
+                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Ayesha Khan</span></p>
+                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 14, 2026 — 11:00 AM (1 Hour)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Availability Slots Management -->
+                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+                    <div class="flex justify-between items-center pb-4 mb-6 border-b border-glamSage/20">
+                        <div>
+                            <h2 class="text-xl font-bold text-glamOlive">Manage Weekly Availability Slots</h2>
+                            <p class="text-sm text-glamOlive/70">Open 1-hour time blocks for booking requests.</p>
+                        </div>
+                        <button id="openSlotModalBtn" class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-glamOlive text-glamCream rounded-xl hover:bg-glamSage transition-all shadow-md">+ Add Slot</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center">
+                            <p class="text-xs font-bold text-glamOlive">Monday</p>
+                            <p class="text-xs text-glamOlive/70 my-1">10:00 AM - 06:00 PM</p>
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> <span class="text-[10px] font-semibold">Active</span>
+                        </div>
+                        <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center">
+                            <p class="text-xs font-bold text-glamOlive">Tuesday</p>
+                            <p class="text-xs text-glamOlive/70 my-1">10:00 AM - 06:00 PM</p>
+                            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> <span class="text-[10px] font-semibold">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Service Management & Chatbot Preview -->
+            <div class="space-y-8">
+                
+                <!-- Services Management -->
+                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+                    <div class="flex justify-between items-center pb-4 mb-4 border-b border-glamSage/20">
+                        <h3 class="text-lg font-bold text-glamOlive">Offered Services</h3>
+                        <button id="openServiceModalBtn" class="text-xs font-bold text-glamOlive bg-glamLightSage px-3 py-1.5 rounded-lg hover:bg-glamSage hover:text-white transition-all">+ New Service</button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="p-3 bg-glamCream/50 rounded-xl border border-glamSage/20 flex justify-between items-center">
+                            <div>
+                                <h4 class="text-sm font-bold text-glamOlive">Bridal Glam Makeup</h4>
+                                <p class="text-xs text-glamOlive/70">1 Hour | PKR 15,000</p>
+                            </div>
+                            <button class="text-xs text-red-600 font-semibold hover:underline">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chatbot Widget Preview -->
+                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-glamLightSage text-glamOlive text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">Widget Preview</div>
+                    <h3 class="text-lg font-bold text-glamOlive mb-2">Glamtopia Assistant</h3>
+                    <p class="text-xs text-glamOlive/70 mb-4">Context-aware support widget.</p>
+                    
+                    <div class="bg-glamCream/80 border border-glamSage/30 rounded-xl p-3 h-36 overflow-y-auto space-y-2 text-xs mb-3">
+                        <div class="bg-glamLightSage/50 p-2 rounded-lg max-w-[85%]">
+                            Hello! How can I assist you with your salon schedule today?
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="Ask a question..." class="flex-1 bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-glamSage">
+                        <button class="bg-glamOlive text-glamCream px-4 py-2 rounded-xl text-xs font-bold hover:bg-glamSage transition-all">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals Section -->
+    
+    <!-- Add Slot Modal -->
+    <div id="addSlotModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity">
+        <div class="glass-card-opaque w-full max-w-md p-6 rounded-2xl shadow-2xl">
+            <h3 class="text-xl font-bold text-glamOlive mb-4">Open New Availability Slot</h3>
+            <form id="addSlotForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-glamOlive mb-1">Date</label>
+                    <input type="date" class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-glamOlive mb-1">Start Time (1-Hour Slot)</label>
+                    <input type="time" class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage" required>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="closeSlotModal" class="px-4 py-2 text-xs font-bold text-glamOlive hover:bg-glamSage/20 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold bg-glamOlive text-glamCream rounded-xl hover:bg-glamSage transition-all shadow-md">Save Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Service Modal -->
+    <div id="addServiceModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity">
+        <div class="glass-card-opaque w-full max-w-md p-6 rounded-2xl shadow-2xl">
+            <h3 class="text-xl font-bold text-glamOlive mb-4">Add New Service</h3>
+            <form id="addServiceForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-glamOlive mb-1">Service Name</label>
+                    <input type="text" placeholder="e.g., Bridal Makeup" class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-glamOlive mb-1">Category</label>
+                    <select class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage">
+                        <option value="hair">Hair</option>
+                        <option value="makeup">Makeup</option>
+                        <option value="nails">Nails</option>
+                        <option value="skincare">Skincare</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-glamOlive mb-1">Price (PKR)</label>
+                        <input type="number" placeholder="15000" class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-glamOlive mb-1">Duration</label>
+                        <select class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage" disabled>
+                            <option>1 Hour</option>
+                        </select>
+                        <p class="text-[10px] text-glamOlive/60 mt-1">Fixed per platform rules</p>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="closeServiceModal" class="px-4 py-2 text-xs font-bold text-glamOlive hover:bg-glamSage/20 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold bg-glamOlive text-glamCream rounded-xl hover:bg-glamSage transition-all shadow-md">Add Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Interactive JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Tab Toggling Logic ---
+            const tabButtons = document.querySelectorAll('#bookingTabs button');
+            const bookingItems = document.querySelectorAll('#bookingsListContainer > div');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    // Reset styling
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('bg-glamLightSage', 'shadow-sm');
+                        btn.classList.add('bg-white/50');
+                    });
+                    
+                    // Set active styling
+                    e.target.classList.remove('bg-white/50');
+                    e.target.classList.add('bg-glamLightSage', 'shadow-sm');
+
+                    const filter = e.target.textContent.trim().toLowerCase();
+
+                    // Filter cards
+                    bookingItems.forEach(item => {
+                        const badgeText = item.querySelector('span.rounded-full').textContent.toLowerCase();
+                        if (filter === 'all' || badgeText.includes(filter)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // --- 2. Modal Helper Functions ---
+            const toggleModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                modal.classList.toggle('hidden');
+                modal.classList.toggle('flex');
+            };
+
+            // --- 3. Add Slot Modal Events ---
+            const slotModalId = 'addSlotModal';
+            document.getElementById('openSlotModalBtn').addEventListener('click', () => toggleModal(slotModalId));
+            document.getElementById('closeSlotModal').addEventListener('click', () => toggleModal(slotModalId));
+            document.getElementById(slotModalId).addEventListener('click', (e) => {
+                if (e.target === document.getElementById(slotModalId)) toggleModal(slotModalId);
+            });
+
+            // --- 4. Add Service Modal Events ---
+            const serviceModalId = 'addServiceModal';
+            document.getElementById('openServiceModalBtn').addEventListener('click', () => toggleModal(serviceModalId));
+            document.getElementById('closeServiceModal').addEventListener('click', () => toggleModal(serviceModalId));
+            document.getElementById(serviceModalId).addEventListener('click', (e) => {
+                if (e.target === document.getElementById(serviceModalId)) toggleModal(serviceModalId);
+            });
+        });
+    </script>
+</body>
+</html>
