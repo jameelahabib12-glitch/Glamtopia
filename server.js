@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 
 dotenv.config();
 
@@ -125,3 +126,5 @@ app.listen(PORT, () => {
     );
 
 });
+
+app.use("/api/chatbot", chatbotRoutes);
