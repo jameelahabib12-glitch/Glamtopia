@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
+const session = require('express-session');
+const { MongoStore } = require('connect-mongo');
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
@@ -20,9 +20,6 @@ app.use(
 );
 
 // --- Session middleware ---
-// Store is MongoDB (connect-mongo), not in-memory, because Vercel functions
-// are stateless — an in-memory store would forget every session between
-// invocations. See SRS section 6 (Technical Constraints).
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
