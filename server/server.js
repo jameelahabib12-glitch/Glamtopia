@@ -7,6 +7,7 @@ const { MongoStore } = require('connect-mongo');
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const demoProtectedRoutes = require("./routes/demoProtectedRoutes");
+const faqRoutes = require("./routes/faqRoutes");
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/demo", demoProtectedRoutes); // remove once real routes exist
+app.use("/api/faqs", faqRoutes);
 
 // --- 404 handler ---
 app.use((req, res) => {
