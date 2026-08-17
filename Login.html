@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log in — Glamtopia</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "glam-ink": "#33402A", "glam-rose": "#9DAD86", "glam-gold": "#89986D",
+          "glam-blush": "#F6F0D8", "glam-sage": "#6F8F52", "glam-cloud": "#FFFDF4",
+          "glam-nav": "#C6DA9F", "glam-warn": "#B0623F"
+        },
+        fontFamily: { display: ["Fraunces", "serif"], sans: ["Manrope", "sans-serif"] }
+      }
+    }
+  };
+</script>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-black/5 bg-glam-nav shadow-sm sticky top-0 z-40">
+  <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
+    <a href="browse.html" class="text-sm font-semibold hover:text-glam-rose">Browse without an account →</a>
+  </nav>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-6 py-16">
+  <div class="glam-card w-full max-w-md p-8">
+    <p class="glam-eyebrow mb-2">Welcome back</p>
+    <h1 class="font-display text-3xl text-glam-ink mb-6">Log in to Glamtopia</h1>
+
+    <div id="next-banner" class="hidden text-sm bg-glam-blush border border-glam-gold/30 rounded-lg px-4 py-3 mb-6 text-glam-ink/80">
+      Log in to finish booking your appointment.
+    </div>
+
+    <!-- Static skeleton: no auth wired yet, form does not submit anywhere -->
+    <form id="login-form" class="space-y-4" novalidate>
+      <div>
+        <label for="email" class="text-sm font-semibold block mb-1">Email</label>
+        <input id="email" name="email" type="email" required
+          class="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none" />
+      </div>
+      <div>
+        <label for="password" class="text-sm font-semibold block mb-1">Password</label>
+        <input id="password" name="password" type="password" required
+          class="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none" />
+      </div>
+      <p id="form-error" class="hidden text-sm text-glam-warn" role="alert"></p>
+      <button type="submit" class="glam-btn-primary w-full font-semibold px-6 py-3 rounded-full">Log in</button>
+    </form>
+
+    <p class="text-sm text-glam-ink/60 mt-6 text-center">
+      New to Glamtopia? <a href="register.html" class="text-glam-rose font-semibold hover:underline">Create an account</a>
+    </p>
+  </div>
+</main>
+
+<footer class="border-t border-black/5 bg-glam-nav">
+  <div class="max-w-6xl mx-auto px-6 py-10 text-sm text-glam-ink/60">
+    © 2026 Glamtopia. Beauty services in Peshawar.
+  </div>
+</footer>
+
+<script>
+  // Show contextual banner when arriving from a booking attempt (FR-13)
+  if (new URLSearchParams(window.location.search).get("next") === "booking") {
+    document.getElementById("next-banner").classList.remove("hidden");
+  }
+
+  // Skeleton-only validation. Real submit handler wires to /api/auth/login.
+  document.getElementById("login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById("form-error");
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+      errorEl.textContent = "Enter both an email and a password to continue.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+    errorEl.classList.add("hidden");
+    errorEl.textContent = "Auth isn't wired up yet — this is a static skeleton.";
+    errorEl.classList.remove("hidden");
+  });
+</script>
+<script src="js/nav.js"></script>
+</body>
+</html>
