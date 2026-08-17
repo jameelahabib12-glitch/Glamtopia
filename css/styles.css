@@ -1,3 +1,4 @@
+Styles · CSS
 /* ==========================================================================
    Glamtopia — design tokens (v2: cooler green palette)
    Palette (sampled from team swatch):
@@ -19,7 +20,7 @@
    soft frosted-glass surface with a real drop shadow — like a card resting
    just above the page.
    ========================================================================== */
-
+ 
 :root {
   --glam-blush: #f6f0d8;
   --glam-nav: #c6da9f;
@@ -31,15 +32,15 @@
   --glam-cloud: rgba(255, 253, 244, 0.6);
   --glam-cloud-solid: #fffdf4;
 }
-
+ 
 * {
   box-sizing: border-box;
 }
-
+ 
 html {
   -webkit-text-size-adjust: 100%;
 }
-
+ 
 body {
   background-color: var(--glam-blush);
   background-image: radial-gradient(circle at 15% 0%, rgba(198, 218, 159, 0.35), transparent 45%),
@@ -49,11 +50,11 @@ body {
   font-family: "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-
+ 
 .font-display {
   font-family: "Fraunces", serif;
 }
-
+ 
 /* ---------- Cards: frosted glass, real shadow, olive hairline ---------- */
 .glam-card {
   background: var(--glam-cloud);
@@ -68,7 +69,7 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 16px 32px rgba(51, 64, 42, 0.16), 0 4px 10px rgba(51, 64, 42, 0.1);
 }
-
+ 
 /* Eyebrow labels — small caps, letter-spaced, like handwritten tags in an
    appointment book. Used instead of generic numbered badges. */
 .glam-eyebrow {
@@ -79,7 +80,7 @@ body {
   text-transform: uppercase;
   color: var(--glam-gold);
 }
-
+ 
 /* ---------- Buttons: sage base, olive (darkest) on hover ---------- */
 .glam-btn-primary {
   background-color: var(--glam-rose);
@@ -94,7 +95,7 @@ body {
 .glam-btn-primary:active {
   transform: translateY(1px);
 }
-
+ 
 .glam-btn-outline {
   border: 1.5px solid var(--glam-ink);
   color: var(--glam-ink);
@@ -106,7 +107,7 @@ body {
   color: #fff;
   box-shadow: 0 4px 12px rgba(51, 64, 42, 0.2);
 }
-
+ 
 .glam-chip {
   border: 1.5px solid rgba(51, 64, 42, 0.18);
   color: var(--glam-ink);
@@ -124,17 +125,17 @@ body {
   color: #fff;
   box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
 }
-
+ 
 .glam-status-available {
   color: var(--glam-sage);
 }
 .glam-status-full {
   color: var(--glam-warn);
 }
-
+ 
 /* Nav / footer / (future) sidebar surface uses the bg-glam-nav Tailwind
    utility directly (see tailwind.config in each page) plus shadow-sm. */
-
+ 
 /* Mobile nav menu */
 #nav-menu {
   transition: max-height 0.2s ease, opacity 0.15s ease;
@@ -148,7 +149,7 @@ body {
   max-height: 24rem;
   opacity: 1;
 }
-
+ 
 /* Visible keyboard focus everywhere */
 a:focus-visible,
 button:focus-visible,
@@ -157,7 +158,7 @@ select:focus-visible {
   outline: 2px solid var(--glam-gold);
   outline-offset: 2px;
 }
-
+ 
 /* ---------- Responsive tuning ---------- */
 @media (max-width: 640px) {
   .font-display {
@@ -167,7 +168,7 @@ select:focus-visible {
     transform: none; /* avoid hover-lift jank on touch devices */
   }
 }
-
+ 
 @media (prefers-reduced-motion: reduce) {
   .glam-card,
   .glam-btn-primary,
@@ -179,3 +180,29 @@ select:focus-visible {
     transform: none;
   }
 }
+ 
+/* ---------- Chatbot widget palette override ----------
+   client/js/chatbot-widget.js (built by a teammate) injects its own
+   <style> tag with a hardcoded purple. Left that file untouched — this
+   just recolors it to match our tokens. !important is needed because the
+   widget's styles load after ours (it's injected at runtime by
+   chatbot-init.js) and would otherwise win the cascade. */
+#gt-chatbot-toggle,
+#gt-chatbot-header,
+.gt-msg.user,
+#gt-chatbot-send {
+  background: var(--glam-rose) !important;
+}
+#gt-chatbot-toggle:hover,
+#gt-chatbot-send:hover {
+  background: var(--glam-gold) !important;
+}
+.gt-msg.bot {
+  background: rgba(198, 218, 159, 0.4) !important;
+  color: var(--glam-ink) !important;
+}
+.gt-faq-chip:hover {
+  background: rgba(198, 218, 159, 0.3) !important;
+  border-color: var(--glam-rose) !important;
+}
+ 

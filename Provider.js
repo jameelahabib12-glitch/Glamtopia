@@ -1,14 +1,14 @@
-/**
- * Renders a single provider profile from mock data.
- * Booking buttons don't create real bookings yet — this is the guest-facing
- * browse skeleton only. Per SRS FR-13, guests are only pushed to
- * login/register at the point of booking, never before.
- */
 (async function initProvider() {
   const root = document.getElementById("profile-root");
   const id = new URLSearchParams(window.location.search).get("id");
+ 
+  // Set this before the async fetch below so js/chatbot-init.js (loaded
+  // later in the page) always sees the right provider ID, even though the
+  // profile data itself is still loading.
+  window.GLAMTOPIA_PROVIDER_ID = id || "";
+ 
   const provider = id ? await MockAPI.getProviderById(id) : null;
-
+ 
   if (!provider) {
     root.innerHTML = `
       <div class="glam-card p-10 text-center">
@@ -19,12 +19,12 @@
     `;
     return;
   }
-
+ 
   document.title = `${provider.business_name} — Glamtopia`;
   root.innerHTML = renderProfile(provider);
   bindBookingButtons();
 })();
-
+ 
 function renderProfile(p) {
   return `
     <section class="glam-card p-8 mb-8">
@@ -39,28 +39,28 @@ function renderProfile(p) {
         </div>
         ${
           p.fully_booked
-            ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
+            ? `<div class="glam-status-full font-semibold text-sm border border-glam-warn/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
             : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
         }
       </div>
       <p class="text-glam-ink/70 mt-6 max-w-2xl">${p.bio}</p>
       <p class="text-sm text-glam-ink/60 mt-3">Contact: ${p.contact_info}</p>
     </section>
-
+ 
     <section class="mb-8">
       <h2 class="font-display text-2xl text-glam-ink mb-4">Services</h2>
       <div class="grid sm:grid-cols-2 gap-4">
         ${p.services.map(renderService).join("")}
       </div>
     </section>
-
+ 
     <section class="mb-8">
       <h2 class="font-display text-2xl text-glam-ink mb-4">Availability</h2>
       ${renderAvailability(p)}
     </section>
   `;
 }
-
+ 
 function renderService(s) {
   return `
     <div class="glam-card p-5 flex items-start justify-between gap-4">
@@ -80,7 +80,7 @@ function renderService(s) {
     </div>
   `;
 }
-
+ 
 function renderAvailability(p) {
   if (p.fully_booked) {
     return `
@@ -90,7 +90,7 @@ function renderAvailability(p) {
       </div>
     `;
   }
-
+ 
   const mockSlots = ["Today · 2:00 PM", "Today · 4:00 PM", "Tomorrow · 11:00 AM", "Tomorrow · 1:00 PM"];
   return `
     <div class="flex flex-wrap gap-3">
@@ -106,7 +106,7 @@ function renderAvailability(p) {
     <p class="text-xs text-glam-ink/50 mt-3">Placeholder slots — wired to <code>availability_slots</code> in the real build.</p>
   `;
 }
-
+ 
 function bindBookingButtons() {
   document.querySelectorAll(".book-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -115,7 +115,8 @@ function bindBookingButtons() {
     });
   });
 }
-
+ 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+ 
