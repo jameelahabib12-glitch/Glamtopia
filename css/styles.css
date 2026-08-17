@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Glamtopia — design tokens (v2: cooler green palette)
+   Palette (sampled from team swatch):
+     --glam-blush  #F6F0D8  light beige — page background
+     --glam-nav    #C6DA9F  light mint, "a bit darker" than bg — navbars,
+                            footer, and future sidebars
+     --glam-rose   #9DAD86  sage — primary button base
+     --glam-gold   #89986D  dark olive, the deepest tone — button hover,
+                            hairline accent
+     --glam-ink    #33402A  dark moss-green — headings, body text
+     --glam-warn   #B0623F  muted terracotta — the one non-green accent,
+                            reserved for "fully booked" / form errors so
+                            they never get lost in a page full of greens
+     --glam-cloud  translucent white — card / chip surface (glass effect)
+   Type:
+     Display — 'Fraunces' (headings)
+     Body/UI — 'Manrope' (everything else)
+   Signature: a 2px olive hairline across the top of every card, plus a
+   soft frosted-glass surface with a real drop shadow — like a card resting
+   just above the page.
+   ========================================================================== */
+
+:root {
+  --glam-blush: #f6f0d8;
+  --glam-nav: #c6da9f;
+  --glam-rose: #9dad86;
+  --glam-gold: #89986d;
+  --glam-ink: #33402a;
+  --glam-sage: #6f8f52;
+  --glam-warn: #b0623f;
+  --glam-cloud: rgba(255, 253, 244, 0.6);
+  --glam-cloud-solid: #fffdf4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--glam-blush);
+  background-image: radial-gradient(circle at 15% 0%, rgba(198, 218, 159, 0.35), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(157, 173, 134, 0.25), transparent 40%);
+  background-attachment: fixed;
+  color: var(--glam-ink);
+  font-family: "Manrope", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: "Fraunces", serif;
+}
+
+/* ---------- Cards: frosted glass, real shadow, olive hairline ---------- */
+.glam-card {
+  background: var(--glam-cloud);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
+  border-top: 2px solid var(--glam-gold);
+  box-shadow: 0 4px 14px rgba(51, 64, 42, 0.1), 0 1px 3px rgba(51, 64, 42, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.glam-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(51, 64, 42, 0.16), 0 4px 10px rgba(51, 64, 42, 0.1);
+}
+
+/* Eyebrow labels — small caps, letter-spaced, like handwritten tags in an
+   appointment book. Used instead of generic numbered badges. */
+.glam-eyebrow {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--glam-gold);
+}
+
+/* ---------- Buttons: sage base, olive (darkest) on hover ---------- */
+.glam-btn-primary {
+  background-color: var(--glam-rose);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.glam-btn-primary:hover {
+  background-color: var(--glam-gold);
+  box-shadow: 0 6px 16px rgba(51, 64, 42, 0.24);
+}
+.glam-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.glam-btn-outline {
+  border: 1.5px solid var(--glam-ink);
+  color: var(--glam-ink);
+  background: rgba(255, 253, 244, 0.4);
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.glam-btn-outline:hover {
+  background-color: var(--glam-ink);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(51, 64, 42, 0.2);
+}
+
+.glam-chip {
+  border: 1.5px solid rgba(51, 64, 42, 0.18);
+  color: var(--glam-ink);
+  background: var(--glam-cloud);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.15s ease;
+}
+.glam-chip:hover {
+  border-color: var(--glam-rose);
+}
+.glam-chip[aria-pressed="true"] {
+  background-color: var(--glam-rose);
+  border-color: var(--glam-rose);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
+}
+
+.glam-status-available {
+  color: var(--glam-sage);
+}
+.glam-status-full {
+  color: var(--glam-warn);
+}
+
+/* Nav / footer / (future) sidebar surface uses the bg-glam-nav Tailwind
+   utility directly (see tailwind.config in each page) plus shadow-sm. */
+
+/* Mobile nav menu */
+#nav-menu {
+  transition: max-height 0.2s ease, opacity 0.15s ease;
+}
+#nav-menu.nav-closed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+#nav-menu.nav-open {
+  max-height: 24rem;
+  opacity: 1;
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--glam-gold);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive tuning ---------- */
+@media (max-width: 640px) {
+  .font-display {
+    letter-spacing: -0.01em;
+  }
+  .glam-card:hover {
+    transform: none; /* avoid hover-lift jank on touch devices */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glam-card,
+  .glam-btn-primary,
+  .glam-btn-outline,
+  #nav-menu {
+    transition: none;
+  }
+  .glam-card:hover {
+    transform: none;
+  }
+}
