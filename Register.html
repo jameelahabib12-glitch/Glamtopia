@@ -69,7 +69,7 @@
         </div>
         <div id="phone-field">
           <label for="phone" class="text-sm font-semibold block mb-1">
-            Phone number <span class="text-glam-ink/40 font-normal">(required for customers, FR-11)</span>
+            Phone number <span class="text-glam-ink/40 font-normal"></span>
           </label>
           <input id="phone" name="phone" type="tel"
             class="w-full border border-black/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none" />
@@ -112,7 +112,7 @@
 
         const isCustomer = selectedRole === "customer";
         phoneField.classList.toggle("hidden", !isCustomer);
-        phoneInput.required = isCustomer; // required for customers per FR-11, optional at signup for providers
+        phoneInput.required = isCustomer;
       });
     });
 
