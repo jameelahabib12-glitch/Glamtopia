@@ -1,4 +1,5 @@
 const Faq = require("../models/Faq");
+const ProviderProfile = require("../models/ProviderProfile");
 
 // GET /api/faqs?providerId=xxx
 // Returns general platform FAQs (provider_id: null) plus, if a providerId
@@ -80,4 +81,107 @@ async function askFaq(req, res) {
     }
 }
 
-module.exports = { listFaqs, askFaq };
+// -----------------------------------------------------------------------
+// Everything below this line = Eeman's Week 2 Day-3 addition (Task 3).
+// Lets a logged-in provider manage their OWN FAQ entries on the shared
+// Faq collection. provider_id is always resolved server-side from the
+// session — never trust a provider_id sent in the request body, or one
+// provider could write into another provider's FAQ list.
+// -----------------------------------------------------------------------
+
+async function getMyProviderProfileId(userId) {
+    const profile = await ProviderProfile.findOne({ user_id: userId });
+    return profile ? profile._id : null;
+}
+
+// POST /api/faqs — provider adds a FAQ entry to their own profile
+async function createProviderFaq(req, res) {
+    try {
+        const providerId = await getMyProviderProfileId(req.session.userId);
+        if (!providerId) {
+            return res.status(400).json({ message: "Create your provider profile before adding FAQs" });
+        }
+
+        const { question, answer, display_order } = req.body;
+        if (!question || !answer) {
+            return res.status(400).json({ message: "question and answer are required" });
+        }
+
+        const faq = await Faq.create({
+            provider_id: providerId,
+            question: question.trim(),
+            answer: answer.trim(),
+            display_order: display_order || 0,
+        });
+
+        return res.status(201).json(faq);
+    } catch (err) {
+        console.error("Create provider FAQ error:", err);
+        return res.status(500).json({ message: "Failed to create FAQ" });
+    }
+}
+
+// PATCH /api/faqs/:id — provider edits their own FAQ entry
+async function updateProviderFaq(req, res) {
+    try {
+        const providerId = await getMyProviderProfileId(req.session.userId);
+        if (!providerId) {
+            return res.status(400).json({ message: "You don't have a provider profile" });
+        }
+
+        const allowedFields = ["question", "answer", "display_order"];
+        const updates = {};
+        for (const field of allowedFields) {
+            if (req.body[field] !== undefined) updates[field] = req.body[field];
+        }
+
+        const faq = await Faq.findOneAndUpdate(
+            { _id: req.params.id, provider_id: providerId }, // ownership check — can't be null (general FAQs), must match this provider
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
+
+        if (!faq) {
+            return res.status(404).json({ message: "FAQ not found or not yours" });
+        }
+
+        return res.status(200).json(faq);
+    } catch (err) {
+        console.error("Update provider FAQ error:", err);
+        return res.status(500).json({ message: "Failed to update FAQ" });
+    }
+}
+
+// DELETE /api/faqs/:id — provider deletes their own FAQ entry
+// (Real delete here, not archive — FAQs aren't tied to booking history like
+// services are, so there's no reason to keep a deleted one around.)
+async function deleteProviderFaq(req, res) {
+    try {
+        const providerId = await getMyProviderProfileId(req.session.userId);
+        if (!providerId) {
+            return res.status(400).json({ message: "You don't have a provider profile" });
+        }
+
+        const faq = await Faq.findOneAndDelete({
+            _id: req.params.id,
+            provider_id: providerId,
+        });
+
+        if (!faq) {
+            return res.status(404).json({ message: "FAQ not found or not yours" });
+        }
+
+        return res.status(200).json({ message: "FAQ deleted" });
+    } catch (err) {
+        console.error("Delete provider FAQ error:", err);
+        return res.status(500).json({ message: "Failed to delete FAQ" });
+    }
+}
+
+module.exports = {
+    listFaqs,
+    askFaq,
+    createProviderFaq,
+    updateProviderFaq,
+    deleteProviderFaq,
+};
