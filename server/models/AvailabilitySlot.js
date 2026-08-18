@@ -1,13 +1,10 @@
 const mongoose = require("mongoose");
 
-// NOTE: provider_id currently points to User (role: 'provider').
-// Per ERD this should point to ProviderProfile once that model exists —
-// confirm with team, then change ref below to "ProviderProfile".
 const availabilitySlotSchema = new mongoose.Schema(
   {
     provider_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "ProviderProfile",
       required: [true, "provider_id is required"],
     },
     start_time: {

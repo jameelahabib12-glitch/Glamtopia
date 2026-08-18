@@ -9,6 +9,8 @@ const authRoutes = require("./routes/authRoutes");
 const demoProtectedRoutes = require("./routes/demoProtectedRoutes");
 const faqRoutes = require("./routes/faqRoutes");
 const availabilityRoutes = require("./routes/availabilityRoutes");
+const providerRoutes = require("./routes/providerRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
 
 const app = express();
 
@@ -50,6 +52,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/demo", demoProtectedRoutes); // remove once real routes exist
 app.use("/api/faqs", faqRoutes);
 app.use("/api/availability", availabilityRoutes);
+app.use("/api/providers", providerRoutes);
+app.use("/api/services", serviceRoutes);
 
 // --- 404 handler ---
 app.use((req, res) => {
