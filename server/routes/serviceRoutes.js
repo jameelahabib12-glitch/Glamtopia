@@ -5,6 +5,7 @@ const {
     listServicesByProvider,
     getServiceById,
     updateService,
+    deleteService,
 } = require("../controllers/serviceController");
 const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 
@@ -15,5 +16,6 @@ router.get("/:id", getServiceById);
 // Protected — only the logged-in provider manages their own services
 router.post("/", requireAuth, requireRole("provider"), createService);
 router.patch("/:id", requireAuth, requireRole("provider"), updateService);
+router.delete("/:id", requireAuth, requireRole("provider"), deleteService); // archives, does not hard-delete
 
 module.exports = router;
