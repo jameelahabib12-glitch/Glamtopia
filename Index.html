@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Glamtopia — Book beauty appointments in Peshawar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glamtopia — Book beauty appointments in Peshawar</title>
 
 
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
 
-<!--
+  <!--
   STACK DECISION (timeboxed to half a day, per task):
   Tailwind CDN loaded below. It ran fine in dev — no build step needed for
   a static skeleton, no npm/PostCSS setup blocking the week-1 deliverable.
@@ -19,155 +22,152 @@
   and re-map utility classes (grid, flex, spacing) to Bootstrap's. Custom
   tokens in css/styles.css are framework-agnostic either way.
 -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          "glam-ink": "#33402A",
-          "glam-rose": "#9DAD86",
-          "glam-gold": "#89986D",
-          "glam-blush": "#F6F0D8",
-          "glam-sage": "#6F8F52",
-          "glam-cloud": "#FFFDF4",
-          "glam-nav": "#C6DA9F",
-          "glam-warn": "#B0623F"
-        },
-        fontFamily: {
-          display: ["Fraunces", "serif"],
-          sans: ["Manrope", "sans-serif"]
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "glam-ink": "#33402A",
+            "glam-rose": "#9DAD86",
+            "glam-gold": "#89986D",
+            "glam-blush": "#F6F0D8",
+            "glam-sage": "#6F8F52",
+            "glam-cloud": "#FFFDF4",
+            "glam-nav": "#C6DA9F",
+            "glam-warn": "#B0623F"
+          },
+          fontFamily: {
+            display: ["Fraunces", "serif"],
+            sans: ["Manrope", "sans-serif"]
+          }
         }
       }
-    }
-  };
-</script>
-<link rel="stylesheet" href="css/styles.css" />
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
+
 <body class="min-h-screen flex flex-col">
 
-<!-- NAV -->
-<header class="border-b border-black/5 bg-glam-nav shadow-sm sticky top-0 z-40 relative">
-  <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-    <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
+  <!-- NAV -->
+  <header class="border-b border-black/5 bg-glam-nav shadow-sm sticky top-0 z-40 relative">
+    <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
 
-    <div
-      id="nav-menu"
-      class="nav-closed md:!max-h-none md:!opacity-100 md:!overflow-visible absolute md:static top-full left-0 right-0 md:flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-8 text-sm font-medium bg-glam-nav md:bg-transparent px-6 md:px-0 py-3 md:py-0 shadow-md md:shadow-none"
-    >
-      <a href="browse.html" class="block py-2 md:py-0 hover:text-glam-rose">Browse providers</a>
-      <a href="browse.html?category=hair" class="block py-2 md:py-0 hover:text-glam-rose">Hair</a>
-      <a href="browse.html?category=makeup" class="block py-2 md:py-0 hover:text-glam-rose">Makeup</a>
-      <a href="browse.html?category=nails" class="block py-2 md:py-0 hover:text-glam-rose">Nails</a>
-      <a href="browse.html?category=skincare" class="block py-2 md:py-0 hover:text-glam-rose">Skincare</a>
-    </div>
-
-    <div class="flex items-center gap-2 sm:gap-3">
-      <a href="login.html" class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
-      <a href="register.html" class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
-      <button
-        id="nav-toggle"
-        type="button"
-        class="md:hidden p-2 rounded-lg hover:bg-black/5"
-        aria-expanded="false"
-        aria-controls="nav-menu"
-        aria-label="Toggle menu"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-          <path d="M3 5h14M3 10h14M3 15h14" />
-        </svg>
-      </button>
-    </div>
-  </nav>
-</header>
-
-<main class="flex-1">
-
-  <!-- HERO -->
-  <section class="max-w-6xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
-    <div>
-      <p class="glam-eyebrow mb-4">Peshawar's beauty booking, in one place</p>
-      <h1 class="font-display text-4xl md:text-5xl leading-tight text-glam-ink mb-6">
-        Find your stylist.<br />Book the slot.<br />Skip the phone tag.
-      </h1>
-      <p class="text-base text-glam-ink/70 mb-8 max-w-md">
-        Browse real availability from salons, makeup artists, and nail
-        technicians near you — no account needed until you're ready to book.
-      </p>
-      <div class="flex flex-wrap gap-3">
-        <a href="browse.html" class="glam-btn-primary font-semibold px-6 py-3 rounded-full">Browse providers</a>
-        <a href="register.html" class="glam-btn-outline font-semibold px-6 py-3 rounded-full">Join as a provider</a>
+      <div id="nav-menu"
+        class="nav-closed md:!max-h-none md:!opacity-100 md:!overflow-visible absolute md:static top-full left-0 right-0 md:flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-8 text-sm font-medium bg-glam-nav md:bg-transparent px-6 md:px-0 py-3 md:py-0 shadow-md md:shadow-none">
+        <a href="browse.html" class="block py-2 md:py-0 hover:text-glam-rose">Browse providers</a>
+        <a href="browse.html?category=hair" class="block py-2 md:py-0 hover:text-glam-rose">Hair</a>
+        <a href="browse.html?category=makeup" class="block py-2 md:py-0 hover:text-glam-rose">Makeup</a>
+        <a href="browse.html?category=nails" class="block py-2 md:py-0 hover:text-glam-rose">Nails</a>
+        <a href="browse.html?category=skincare" class="block py-2 md:py-0 hover:text-glam-rose">Skincare</a>
       </div>
-    </div>
 
-    <!-- Signature: a preview stack of provider cards, foreshadowing the browse grid.
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="login.html"
+          class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
+        <a href="register.html"
+          class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
+        <button id="nav-toggle" type="button" class="md:hidden p-2 rounded-lg hover:bg-black/5" aria-expanded="false"
+          aria-controls="nav-menu" aria-label="Toggle menu">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round">
+            <path d="M3 5h14M3 10h14M3 15h14" />
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1">
+
+    <!-- HERO -->
+    <section class="max-w-6xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+      <div>
+        <p class="glam-eyebrow mb-4">Peshawar's beauty booking, in one place</p>
+        <h1 class="font-display text-4xl md:text-5xl leading-tight text-glam-ink mb-6">
+          Find your stylist.<br />Book the slot.<br />Skip the phone tag.
+        </h1>
+        <p class="text-base text-glam-ink/70 mb-8 max-w-md">
+          Browse real availability from salons, makeup artists, and nail
+          technicians near you — no account needed until you're ready to book.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a href="browse.html" class="glam-btn-primary font-semibold px-6 py-3 rounded-full">Browse providers</a>
+          <a href="register.html" class="glam-btn-outline font-semibold px-6 py-3 rounded-full">Join as a provider</a>
+        </div>
+      </div>
+
+      <!-- Signature: a preview stack of provider cards, foreshadowing the browse grid.
          Absolute positioning + rotation overflows narrow phones, so this is
          sm:+ only; mobile gets a clean text-only hero instead. -->
-    <div class="relative h-80 md:h-96 hidden sm:block" aria-hidden="true">
-      <div class="glam-card absolute top-0 left-4 w-56 md:w-64 p-5 rotate-[-4deg]">
-        <p class="glam-eyebrow">Hair</p>
-        <p class="font-display text-lg mt-1">Noor Hair Studio</p>
-        <p class="text-sm text-glam-ink/60 mt-1">Hayatabad · ★ 4.8</p>
+      <div class="relative h-80 md:h-96 hidden sm:block" aria-hidden="true">
+        <div class="glam-card absolute top-0 left-4 w-56 md:w-64 p-5 rotate-[-4deg]">
+          <p class="glam-eyebrow">Hair</p>
+          <p class="font-display text-lg mt-1">Noor Hair Studio</p>
+          <p class="text-sm text-glam-ink/60 mt-1">Hayatabad · ★ 4.8</p>
+        </div>
+        <div class="glam-card absolute top-16 left-20 md:left-24 w-56 md:w-64 p-5 rotate-[3deg]">
+          <p class="glam-eyebrow">Makeup</p>
+          <p class="font-display text-lg mt-1">Ayesha's Makeover</p>
+          <p class="text-sm text-glam-ink/60 mt-1">University Town · ★ 4.9</p>
+        </div>
+        <div class="glam-card absolute top-32 left-8 w-56 md:w-64 p-5 rotate-[-2deg]">
+          <p class="glam-eyebrow">Skincare</p>
+          <p class="font-display text-lg mt-1">Glow &amp; Grace Clinic</p>
+          <p class="text-sm text-glam-ink/60 mt-1">Gulberg · ★ 4.6</p>
+        </div>
       </div>
-      <div class="glam-card absolute top-16 left-20 md:left-24 w-56 md:w-64 p-5 rotate-[3deg]">
-        <p class="glam-eyebrow">Makeup</p>
-        <p class="font-display text-lg mt-1">Ayesha's Makeover</p>
-        <p class="text-sm text-glam-ink/60 mt-1">University Town · ★ 4.9</p>
+    </section>
+
+    <!-- CATEGORY QUICK LINKS -->
+    <section class="max-w-6xl mx-auto px-6 pb-16">
+      <h2 class="font-display text-2xl text-glam-ink mb-6">Browse by category</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="browse.html?category=hair" class="glam-card p-6 text-center hover:border-glam-rose">
+          <p class="font-display text-lg">Hair</p>
+        </a>
+        <a href="browse.html?category=makeup" class="glam-card p-6 text-center">
+          <p class="font-display text-lg">Makeup</p>
+        </a>
+        <a href="browse.html?category=nails" class="glam-card p-6 text-center">
+          <p class="font-display text-lg">Nails</p>
+        </a>
+        <a href="browse.html?category=skincare" class="glam-card p-6 text-center">
+          <p class="font-display text-lg">Skincare</p>
+        </a>
       </div>
-      <div class="glam-card absolute top-32 left-8 w-56 md:w-64 p-5 rotate-[-2deg]">
-        <p class="glam-eyebrow">Skincare</p>
-        <p class="font-display text-lg mt-1">Glow &amp; Grace Clinic</p>
-        <p class="text-sm text-glam-ink/60 mt-1">Gulberg · ★ 4.6</p>
+    </section>
+
+    <!-- FEATURED PROVIDERS (mock data) -->
+    <section class="max-w-6xl mx-auto px-6 pb-20">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="font-display text-2xl text-glam-ink">Top rated this week</h2>
+        <a href="browse.html" class="text-sm font-semibold text-glam-rose hover:underline">See all →</a>
+      </div>
+      <div id="featured-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- populated by js/landing.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 bg-glam-nav">
+    <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-4 text-sm text-glam-ink/60">
+      <p>© 2026 Glamtopia. Beauty services in Peshawar.</p>
+      <div class="flex gap-6">
+        <a href="browse.html" class="hover:text-glam-rose">Browse</a>
+        <a href="login.html" class="hover:text-glam-rose">Log in</a>
+        <a href="register.html" class="hover:text-glam-rose">Sign up</a>
       </div>
     </div>
-  </section>
+  </footer>
 
-  <!-- CATEGORY QUICK LINKS -->
-  <section class="max-w-6xl mx-auto px-6 pb-16">
-    <h2 class="font-display text-2xl text-glam-ink mb-6">Browse by category</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <a href="browse.html?category=hair" class="glam-card p-6 text-center hover:border-glam-rose">
-        <p class="font-display text-lg">Hair</p>
-      </a>
-      <a href="browse.html?category=makeup" class="glam-card p-6 text-center">
-        <p class="font-display text-lg">Makeup</p>
-      </a>
-      <a href="browse.html?category=nails" class="glam-card p-6 text-center">
-        <p class="font-display text-lg">Nails</p>
-      </a>
-      <a href="browse.html?category=skincare" class="glam-card p-6 text-center">
-        <p class="font-display text-lg">Skincare</p>
-      </a>
-    </div>
-  </section>
-
-  <!-- FEATURED PROVIDERS (mock data) -->
-  <section class="max-w-6xl mx-auto px-6 pb-20">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="font-display text-2xl text-glam-ink">Top rated this week</h2>
-      <a href="browse.html" class="text-sm font-semibold text-glam-rose hover:underline">See all →</a>
-    </div>
-    <div id="featured-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- populated by js/landing.js -->
-    </div>
-  </section>
-
-</main>
-
-<!-- FOOTER -->
-<footer class="border-t border-black/5 bg-glam-nav">
-  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-4 text-sm text-glam-ink/60">
-    <p>© 2026 Glamtopia. Beauty services in Peshawar.</p>
-    <div class="flex gap-6">
-      <a href="browse.html" class="hover:text-glam-rose">Browse</a>
-      <a href="login.html" class="hover:text-glam-rose">Log in</a>
-      <a href="register.html" class="hover:text-glam-rose">Sign up</a>
-    </div>
-  </div>
-</footer>
-
-<script src="js/mock-data.js"></script>
-<script src="js/landing.js"></script>
-<script src="js/nav.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/landing.js"></script>
+  <script src="js/nav.js"></script>
 </body>
+
 </html>
