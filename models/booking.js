@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+// PLACEHOLDER — Booking is Jameela's Week 2 deliverable (booking creation +
+// conflict prevention, per the WBS critical path). This minimal version
+// exists only so Review can be tested locally right now (reviews require
+// a completed booking to exist). Replace/reconcile this with Jameela's
+// real Booking model as soon as she has it — do not treat this as final.
 const bookingSchema = new mongoose.Schema(
     {
         customer: {
@@ -33,12 +38,7 @@ const bookingSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: [
-                "pending",
-                "confirmed",
-                "completed",
-                "cancelled"
-            ],
+            enum: ["pending", "confirmed", "completed", "cancelled"],
             default: "pending"
         }
     },
@@ -47,6 +47,4 @@ const bookingSchema = new mongoose.Schema(
     }
 );
 
-module.exports =
-    mongoose.models.Booking ||
-    mongoose.model("Booking", bookingSchema);
+module.exports = mongoose.model("Booking", bookingSchema);

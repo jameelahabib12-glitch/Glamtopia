@@ -7,18 +7,33 @@ const path = require("path");
 
 const connectDB = require("./config/db");
 
+// ==========================================
+// ROUTES
+// ==========================================
+
 const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const chatbotRoutes = require("./routes/chatbotRoutes");
 
+// ==========================================
+// ENVIRONMENT
+// ==========================================
+
 dotenv.config();
+
+// ==========================================
+// DATABASE
+// ==========================================
 
 connectDB();
 
-const app = express();
+// ==========================================
+// APP
+// ==========================================
 
+const app = express();
 
 // ==========================================
 // MIDDLEWARE
@@ -38,7 +53,6 @@ app.use(
         extended: true
     })
 );
-
 
 // ==========================================
 // SESSION
@@ -62,7 +76,6 @@ app.use(
     })
 );
 
-
 // ==========================================
 // FRONTEND
 // ==========================================
@@ -73,29 +86,38 @@ app.use(
     )
 );
 
-
 // ==========================================
 // API ROUTES
 // ==========================================
 
+// Authentication
 app.use(
     "/api/auth",
     authRoutes
 );
 
+// Profile
 app.use(
     "/api/profile",
     profileRoutes
 );
 
+// Reviews
 app.use(
     "/api/reviews",
     reviewRoutes
 );
 
+// Bookings
 app.use(
     "/api/bookings",
     bookingRoutes
+);
+
+// Chatbot
+app.use(
+    "/api/chatbot",
+    chatbotRoutes
 );
 
 // ==========================================
@@ -106,7 +128,7 @@ app.get("/api", (req, res) => {
 
     res.json({
         message:
-            "ZiriumAI Local Service Marketplace API Running 🚀"
+            "Glamtopia Local Service Marketplace API Running 🚀"
     });
 
 });
@@ -120,11 +142,7 @@ const PORT =
     process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-
     console.log(
         `Server running on port ${PORT}`
     );
-
 });
-
-app.use("/api/chatbot", chatbotRoutes);

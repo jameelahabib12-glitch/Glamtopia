@@ -1,0 +1,159 @@
+[1mdiff --git a/models/booking.js b/models/booking.js[m
+[1mindex a1d5233..d35de0c 100644[m
+[1m--- a/models/booking.js[m
+[1m+++ b/models/booking.js[m
+[36m@@ -1,5 +1,10 @@[m
+ const mongoose = require("mongoose");[m
+ [m
+[32m+[m[32m// PLACEHOLDER — Booking is Jameela's Week 2 deliverable (booking creation +[m
+[32m+[m[32m// conflict prevention, per the WBS critical path). This minimal version[m
+[32m+[m[32m// exists only so Review can be tested locally right now (reviews require[m
+[32m+[m[32m// a completed booking to exist). Replace/reconcile this with Jameela's[m
+[32m+[m[32m// real Booking model as soon as she has it — do not treat this as final.[m
+ const bookingSchema = new mongoose.Schema([m
+     {[m
+         customer: {[m
+[36m@@ -33,12 +38,7 @@[m [mconst bookingSchema = new mongoose.Schema([m
+ [m
+         status: {[m
+             type: String,[m
+[31m-            enum: [[m
+[31m-                "pending",[m
+[31m-                "confirmed",[m
+[31m-                "completed",[m
+[31m-                "cancelled"[m
+[31m-            ],[m
+[32m+[m[32m            enum: ["pending", "confirmed", "completed", "cancelled"],[m
+             default: "pending"[m
+         }[m
+     },[m
+[36m@@ -47,6 +47,4 @@[m [mconst bookingSchema = new mongoose.Schema([m
+     }[m
+ );[m
+ [m
+[31m-module.exports =[m
+[31m-    mongoose.models.Booking ||[m
+[31m-    mongoose.model("Booking", bookingSchema);[m
+\ No newline at end of file[m
+[32m+[m[32mmodule.exports = mongoose.model("Booking", bookingSchema);[m
+[1mdiff --git a/server.js b/server.js[m
+[1mindex 3728df1..edf2460 100644[m
+[1m--- a/server.js[m
+[1m+++ b/server.js[m
+[36m@@ -7,18 +7,33 @@[m [mconst path = require("path");[m
+ [m
+ const connectDB = require("./config/db");[m
+ [m
+[32m+[m[32m// ==========================================[m
+[32m+[m[32m// ROUTES[m
+[32m+[m[32m// ==========================================[m
+[32m+[m
+ const authRoutes = require("./routes/authRoutes");[m
+ const profileRoutes = require("./routes/profileRoutes");[m
+ const reviewRoutes = require("./routes/reviewRoutes");[m
+ const bookingRoutes = require("./routes/bookingRoutes");[m
+ const chatbotRoutes = require("./routes/chatbotRoutes");[m
+ [m
+[32m+[m[32m// ==========================================[m
+[32m+[m[32m// ENVIRONMENT[m
+[32m+[m[32m// ==========================================[m
+[32m+[m
+ dotenv.config();[m
+ [m
+[32m+[m[32m// ==========================================[m
+[32m+[m[32m// DATABASE[m
+[32m+[m[32m// ==========================================[m
+[32m+[m
+ connectDB();[m
+ [m
+[31m-const app = express();[m
+[32m+[m[32m// ==========================================[m
+[32m+[m[32m// APP[m
+[32m+[m[32m// ==========================================[m
+ [m
+[32m+[m[32mconst app = express();[m
+ [m
+ // ==========================================[m
+ // MIDDLEWARE[m
+[36m@@ -39,7 +54,6 @@[m [mapp.use([m
+     })[m
+ );[m
+ [m
+[31m-[m
+ // ==========================================[m
+ // SESSION[m
+ // ==========================================[m
+[36m@@ -62,7 +76,6 @@[m [mapp.use([m
+     })[m
+ );[m
+ [m
+[31m-[m
+ // ==========================================[m
+ // FRONTEND[m
+ // ==========================================[m
+[36m@@ -73,31 +86,40 @@[m [mapp.use([m
+     )[m
+ );[m
+ [m
+[31m-[m
+ // ==========================================[m
+ // API ROUTES[m
+ // ==========================================[m
+ [m
+[32m+[m[32m// Authentication[m
+ app.use([m
+     "/api/auth",[m
+     authRoutes[m
+ );[m
+ [m
+[32m+[m[32m// Profile[m
+ app.use([m
+     "/api/profile",[m
+     profileRoutes[m
+ );[m
+ [m
+[32m+[m[32m// Reviews[m
+ app.use([m
+     "/api/reviews",[m
+     reviewRoutes[m
+ );[m
+ [m
+[32m+[m[32m// Bookings[m
+ app.use([m
+     "/api/bookings",[m
+     bookingRoutes[m
+ );[m
+ [m
+[32m+[m[32m// Chatbot[m
+[32m+[m[32mapp.use([m
+[32m+[m[32m    "/api/chatbot",[m
+[32m+[m[32m    chatbotRoutes[m
+[32m+[m[32m);[m
+[32m+[m
+ // ==========================================[m
+ // API HOME[m
+ // ==========================================[m
+[36m@@ -106,7 +128,7 @@[m [mapp.get("/api", (req, res) => {[m
+ [m
+     res.json({[m
+         message:[m
+[31m-            "ZiriumAI Local Service Marketplace API Running 🚀"[m
+[32m+[m[32m            "Glamtopia Local Service Marketplace API Running 🚀"[m
+     });[m
+ [m
+ });[m
+[36m@@ -120,11 +142,7 @@[m [mconst PORT =[m
+     process.env.PORT || 5000;[m
+ [m
+ app.listen(PORT, () => {[m
+[31m-[m
+     console.log([m
+         `Server running on port ${PORT}`[m
+     );[m
+[31m-[m
+[31m-});[m
+[31m-[m
+[31m-app.use("/api/chatbot", chatbotRoutes);[m
+\ No newline at end of file[m
+[32m+[m[32m});[m
+\ No newline at end of file[m
