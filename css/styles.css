@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+Styles · CSS
+=======
+>>>>>>> origin/main
 /* ==========================================================================
    Glamtopia — design tokens (v2: cooler green palette)
    Palette (sampled from team swatch):
@@ -19,7 +23,11 @@
    soft frosted-glass surface with a real drop shadow — like a card resting
    just above the page.
    ========================================================================== */
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 :root {
   --glam-blush: #f6f0d8;
   --glam-nav: #c6da9f;
@@ -31,6 +39,17 @@
   --glam-cloud: rgba(255, 253, 244, 0.6);
   --glam-cloud-solid: #fffdf4;
 }
+<<<<<<< HEAD
+ 
+* {
+  box-sizing: border-box;
+}
+ 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+ 
+=======
 
 * {
   box-sizing: border-box;
@@ -40,6 +59,7 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+>>>>>>> origin/main
 body {
   background-color: var(--glam-blush);
   background-image: radial-gradient(circle at 15% 0%, rgba(198, 218, 159, 0.35), transparent 45%),
@@ -49,11 +69,19 @@ body {
   font-family: "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+<<<<<<< HEAD
+ 
+.font-display {
+  font-family: "Fraunces", serif;
+}
+ 
+=======
 
 .font-display {
   font-family: "Fraunces", serif;
 }
 
+>>>>>>> origin/main
 /* ---------- Cards: frosted glass, real shadow, olive hairline ---------- */
 .glam-card {
   background: var(--glam-cloud);
@@ -64,12 +92,19 @@ body {
   box-shadow: 0 4px 14px rgba(51, 64, 42, 0.1), 0 1px 3px rgba(51, 64, 42, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main
 .glam-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 32px rgba(51, 64, 42, 0.16), 0 4px 10px rgba(51, 64, 42, 0.1);
 }
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 /* Eyebrow labels — small caps, letter-spaced, like handwritten tags in an
    appointment book. Used instead of generic numbered badges. */
 .glam-eyebrow {
@@ -80,7 +115,11 @@ body {
   text-transform: uppercase;
   color: var(--glam-gold);
 }
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 /* ---------- Buttons: sage base, olive (darkest) on hover ---------- */
 .glam-btn-primary {
   background-color: var(--glam-rose);
@@ -88,29 +127,46 @@ body {
   box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
   transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main
 .glam-btn-primary:hover {
   background-color: var(--glam-gold);
   box-shadow: 0 6px 16px rgba(51, 64, 42, 0.24);
 }
+<<<<<<< HEAD
+.glam-btn-primary:active {
+  transform: translateY(1px);
+}
+ 
+=======
 
 .glam-btn-primary:active {
   transform: translateY(1px);
 }
 
+>>>>>>> origin/main
 .glam-btn-outline {
   border: 1.5px solid var(--glam-ink);
   color: var(--glam-ink);
   background: rgba(255, 253, 244, 0.4);
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main
 .glam-btn-outline:hover {
   background-color: var(--glam-ink);
   color: #fff;
   box-shadow: 0 4px 12px rgba(51, 64, 42, 0.2);
 }
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 .glam-chip {
   border: 1.5px solid rgba(51, 64, 42, 0.18);
   color: var(--glam-ink);
@@ -119,17 +175,36 @@ body {
   -webkit-backdrop-filter: blur(6px);
   transition: all 0.15s ease;
 }
+<<<<<<< HEAD
+.glam-chip:hover {
+  border-color: var(--glam-rose);
+}
+=======
 
 .glam-chip:hover {
   border-color: var(--glam-rose);
 }
 
+>>>>>>> origin/main
 .glam-chip[aria-pressed="true"] {
   background-color: var(--glam-rose);
   border-color: var(--glam-rose);
   color: #fff;
   box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
 }
+<<<<<<< HEAD
+ 
+.glam-status-available {
+  color: var(--glam-sage);
+}
+.glam-status-full {
+  color: var(--glam-warn);
+}
+ 
+/* Nav / footer / (future) sidebar surface uses the bg-glam-nav Tailwind
+   utility directly (see tailwind.config in each page) plus shadow-sm. */
+ 
+=======
 
 .glam-status-available {
   color: var(--glam-sage);
@@ -142,22 +217,33 @@ body {
 /* Nav / footer / (future) sidebar surface uses the bg-glam-nav Tailwind
    utility directly (see tailwind.config in each page) plus shadow-sm. */
 
+>>>>>>> origin/main
 /* Mobile nav menu */
 #nav-menu {
   transition: max-height 0.2s ease, opacity 0.15s ease;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main
 #nav-menu.nav-closed {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> origin/main
 #nav-menu.nav-open {
   max-height: 24rem;
   opacity: 1;
 }
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 /* Visible keyboard focus everywhere */
 a:focus-visible,
 button:focus-visible,
@@ -166,12 +252,24 @@ select:focus-visible {
   outline: 2px solid var(--glam-gold);
   outline-offset: 2px;
 }
+<<<<<<< HEAD
+ 
+=======
 
+>>>>>>> origin/main
 /* ---------- Responsive tuning ---------- */
 @media (max-width: 640px) {
   .font-display {
     letter-spacing: -0.01em;
   }
+<<<<<<< HEAD
+  .glam-card:hover {
+    transform: none; /* avoid hover-lift jank on touch devices */
+  }
+}
+ 
+@media (prefers-reduced-motion: reduce) {
+=======
 
   .glam-card:hover {
     transform: none;
@@ -181,14 +279,48 @@ select:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
 
+>>>>>>> origin/main
   .glam-card,
   .glam-btn-primary,
   .glam-btn-outline,
   #nav-menu {
     transition: none;
   }
+<<<<<<< HEAD
+  .glam-card:hover {
+    transform: none;
+  }
+}
+ 
+/* ---------- Chatbot widget palette override ----------
+   client/js/chatbot-widget.js (built by a teammate) injects its own
+   <style> tag with a hardcoded purple. Left that file untouched — this
+   just recolors it to match our tokens. !important is needed because the
+   widget's styles load after ours (it's injected at runtime by
+   chatbot-init.js) and would otherwise win the cascade. */
+#gt-chatbot-toggle,
+#gt-chatbot-header,
+.gt-msg.user,
+#gt-chatbot-send {
+  background: var(--glam-rose) !important;
+}
+#gt-chatbot-toggle:hover,
+#gt-chatbot-send:hover {
+  background: var(--glam-gold) !important;
+}
+.gt-msg.bot {
+  background: rgba(198, 218, 159, 0.4) !important;
+  color: var(--glam-ink) !important;
+}
+.gt-faq-chip:hover {
+  background: rgba(198, 218, 159, 0.3) !important;
+  border-color: var(--glam-rose) !important;
+}
+ 
+=======
 
   .glam-card:hover {
     transform: none;
   }
 }
+>>>>>>> origin/main
