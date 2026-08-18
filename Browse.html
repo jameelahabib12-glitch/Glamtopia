@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 <!DOCTYPE html>
 <html lang="en">
@@ -101,4 +102,112 @@
 <script src="js/browse.js"></script>
 <script src="js/nav.js"></script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse providers — Glamtopia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "glam-ink": "#33402A", "glam-rose": "#9DAD86", "glam-gold": "#89986D",
+            "glam-blush": "#F6F0D8", "glam-sage": "#6F8F52", "glam-cloud": "#FFFDF4",
+            "glam-nav": "#C6DA9F", "glam-warn": "#B0623F"
+          },
+          fontFamily: { display: ["Fraunces", "serif"], sans: ["Manrope", "sans-serif"] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <header class="border-b border-black/5 bg-glam-nav shadow-sm sticky top-0 z-40">
+    <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
+      <div class="flex items-center gap-3">
+        <a href="login.html"
+          class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
+        <a href="register.html"
+          class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto px-6 py-10 w-full">
+
+    <p class="glam-eyebrow mb-2">FR-02 / FR-03 — Guest discovery, no login required</p>
+    <h1 class="font-display text-3xl md:text-4xl text-glam-ink mb-6">Browse beauty providers</h1>
+
+    <!-- Search + filters -->
+    <div class="glam-card p-5 mb-8">
+      <div class="flex flex-col md:flex-row gap-4 mb-4">
+        <input id="search-input" type="search" placeholder="Search by name or category…"
+          class="flex-1 border border-black/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none" />
+        <select id="sort-select" class="border border-black/10 rounded-lg px-4 py-2.5 text-sm">
+          <option value="rating">Sort: Highest rated</option>
+          <option value="price-low">Sort: Price (low to high)</option>
+          <option value="price-high">Sort: Price (high to low)</option>
+        </select>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-4" id="category-chips" role="group" aria-label="Filter by category">
+        <!-- chips injected by browse.js -->
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="price-range" class="text-xs font-semibold text-glam-ink/60 block mb-1">
+            Max price: <span id="price-range-value">Any</span>
+          </label>
+          <input id="price-range" type="range" min="0" max="15000" step="500" value="15000"
+            class="w-full accent-glam-rose" />
+        </div>
+        <div class="flex items-end">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="available-only" class="accent-glam-rose" />
+            Available now only
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <p id="results-count" class="text-sm text-glam-ink/60 mb-4"></p>
+
+    <div id="results-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- populated by browse.js -->
+    </div>
+
+    <p id="empty-state" class="hidden text-center text-glam-ink/60 py-16">
+      No providers match those filters yet. Try widening your search.
+    </p>
+
+  </main>
+
+  <footer class="border-t border-black/5 bg-glam-nav">
+    <div class="max-w-6xl mx-auto px-6 py-10 text-sm text-glam-ink/60">
+      © 2026 Glamtopia. Beauty services in Peshawar.
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/browse.js"></script>
+  <script src="js/nav.js"></script>
+</body>
+
+>>>>>>> origin/main
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,4 +56,68 @@
 <script src="js/provider.js"></script>
 <script src="js/nav.js"></script>
 </body>
+=======
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Provider profile — Glamtopia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "glam-ink": "#33402A", "glam-rose": "#9DAD86", "glam-gold": "#89986D",
+            "glam-blush": "#F6F0D8", "glam-sage": "#6F8F52", "glam-cloud": "#FFFDF4",
+            "glam-nav": "#C6DA9F", "glam-warn": "#B0623F"
+          },
+          fontFamily: { display: ["Fraunces", "serif"], sans: ["Manrope", "sans-serif"] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+  <header class="border-b border-black/5 bg-glam-nav shadow-sm sticky top-0 z-40">
+    <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
+      <div class="flex items-center gap-3">
+        <a href="login.html"
+          class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
+        <a href="register.html"
+          class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-5xl mx-auto px-6 py-10 w-full">
+    <a href="browse.html" class="text-sm font-semibold text-glam-rose hover:underline">&larr; Back to browse</a>
+
+    <div id="profile-root" class="mt-6">
+      <!-- populated by js/provider.js -->
+    </div>
+  </main>
+
+  <footer class="border-t border-black/5 bg-glam-nav">
+    <div class="max-w-6xl mx-auto px-6 py-10 text-sm text-glam-ink/60">
+      © 2026 Glamtopia. Beauty services in Peshawar.
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/provider.js"></script>
+  <script src="js/nav.js"></script>
+</body>
+
+>>>>>>> origin/main
 </html>

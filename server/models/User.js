@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 
-// NOTE: This is a minimal version to unblock auth work in Week 1.
-// Once the ERD is finalized, extend this (or split into Customer/Provider
-// sub-schemas) to match it exactly — don't treat this as final.
+// Base account for both customers and providers.
+// See Glamtopia_ERD_Final.docx, Section 2 ("users").
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -28,8 +27,21 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "provider"],
       required: [true, "Role is required"],
     },
+    phone_number: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    cancellation_warning_count: {
+      type: Number,
+      default: 0, // customers only — increments when a CONFIRMED booking is cancelled (SRS §8)
+    },
+    is_suspended: {
+      type: Boolean,
+      default: false, // set true when cancellation_warning_count crosses the agreed threshold
+    },
   },
-  { timestamps: true }
+  { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
 module.exports = mongoose.model("User", userSchema);

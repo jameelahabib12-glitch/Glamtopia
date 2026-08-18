@@ -20,12 +20,12 @@
  * into a separate widget.
  */
 (function () {
-    const scriptTag = document.currentScript;
-    const API_BASE = scriptTag.dataset.apiBase || "http://localhost:5000/api";
-    const PROVIDER_ID = scriptTag.dataset.providerId || "";
+  const scriptTag = document.currentScript;
+  const API_BASE = scriptTag.dataset.apiBase || "http://localhost:5000/api";
+  const PROVIDER_ID = scriptTag.dataset.providerId || "";
 
-    const style = document.createElement("style");
-    style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
     #gt-chatbot-toggle {
       position: fixed; bottom: 24px; right: 24px; z-index: 9999;
       width: 56px; height: 56px; border-radius: 50%; border: none;
@@ -65,17 +65,17 @@
       border: none; background: #6B4FA0; color: #fff; padding: 0 16px; cursor: pointer;
     }
   `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 
-    const toggle = document.createElement("button");
-    toggle.id = "gt-chatbot-toggle";
-    toggle.setAttribute("aria-label", "Open help chat");
-    toggle.textContent = "💬";
-    document.body.appendChild(toggle);
+  const toggle = document.createElement("button");
+  toggle.id = "gt-chatbot-toggle";
+  toggle.setAttribute("aria-label", "Open help chat");
+  toggle.textContent = "💬";
+  document.body.appendChild(toggle);
 
-    const panel = document.createElement("div");
-    panel.id = "gt-chatbot-panel";
-    panel.innerHTML = `
+  const panel = document.createElement("div");
+  panel.id = "gt-chatbot-panel";
+  panel.innerHTML = `
     <div id="gt-chatbot-header">Glamtopia Help</div>
     <div id="gt-chatbot-messages"></div>
     <div id="gt-chatbot-input-row">
@@ -83,81 +83,81 @@
       <button id="gt-chatbot-send">Send</button>
     </div>
   `;
-    document.body.appendChild(panel);
+  document.body.appendChild(panel);
 
-    const messagesEl = panel.querySelector("#gt-chatbot-messages");
-    const inputEl = panel.querySelector("#gt-chatbot-input");
-    const sendBtn = panel.querySelector("#gt-chatbot-send");
+  const messagesEl = panel.querySelector("#gt-chatbot-messages");
+  const inputEl = panel.querySelector("#gt-chatbot-input");
+  const sendBtn = panel.querySelector("#gt-chatbot-send");
 
-    function addMessage(text, sender) {
-        const div = document.createElement("div");
-        div.className = "gt-msg " + sender;
-        div.textContent = text;
-        messagesEl.appendChild(div);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        return div;
-    }
+  function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = "gt-msg " + sender;
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
 
-    function addFaqChips(faqs) {
-        const wrap = document.createElement("div");
-        faqs.slice(0, 5).forEach((faq) => {
-            const chip = document.createElement("button");
-            chip.className = "gt-faq-chip";
-            chip.textContent = faq.question;
-            chip.addEventListener("click", () => {
-                addMessage(faq.question, "user");
-                addMessage(faq.answer, "bot");
-            });
-            wrap.appendChild(chip);
-        });
-        messagesEl.appendChild(wrap);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    let opened = false;
-    let loadedInitial = false;
-
-    toggle.addEventListener("click", async () => {
-        opened = !opened;
-        panel.classList.toggle("open", opened);
-        if (opened && !loadedInitial) {
-            loadedInitial = true;
-            addMessage("Hi! Ask me anything, or pick a common question below.", "bot");
-            try {
-                const url = new URL(API_BASE.replace(/\/$/, "") + "/faqs");
-                if (PROVIDER_ID) url.searchParams.set("providerId", PROVIDER_ID);
-                const res = await fetch(url, { credentials: "include" });
-                const data = await res.json();
-                if (data.faqs && data.faqs.length) addFaqChips(data.faqs);
-            } catch (err) {
-                console.error("Chatbot: failed to load FAQs", err);
-            }
-        }
+  function addFaqChips(faqs) {
+    const wrap = document.createElement("div");
+    faqs.slice(0, 5).forEach((faq) => {
+      const chip = document.createElement("button");
+      chip.className = "gt-faq-chip";
+      chip.textContent = faq.question;
+      chip.addEventListener("click", () => {
+        addMessage(faq.question, "user");
+        addMessage(faq.answer, "bot");
+      });
+      wrap.appendChild(chip);
     });
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
 
-    async function sendQuestion() {
-        const question = inputEl.value.trim();
-        if (!question) return;
-        addMessage(question, "user");
-        inputEl.value = "";
+  let opened = false;
+  let loadedInitial = false;
 
-        try {
-            const res = await fetch(API_BASE.replace(/\/$/, "") + "/faqs/ask", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ question, providerId: PROVIDER_ID || undefined }),
-            });
-            const data = await res.json();
-            addMessage(data.answer, "bot");
-        } catch (err) {
-            console.error("Chatbot: ask failed", err);
-            addMessage("Something went wrong reaching the server. Try again in a moment.", "bot");
-        }
+  toggle.addEventListener("click", async () => {
+    opened = !opened;
+    panel.classList.toggle("open", opened);
+    if (opened && !loadedInitial) {
+      loadedInitial = true;
+      addMessage("Hi! Ask me anything, or pick a common question below.", "bot");
+      try {
+        const url = new URL(API_BASE.replace(/\/$/, "") + "/faqs");
+        if (PROVIDER_ID) url.searchParams.set("providerId", PROVIDER_ID);
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        if (data.faqs && data.faqs.length) addFaqChips(data.faqs);
+      } catch (err) {
+        console.error("Chatbot: failed to load FAQs", err);
+      }
     }
+  });
 
-    sendBtn.addEventListener("click", sendQuestion);
-    inputEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") sendQuestion();
-    });
+  async function sendQuestion() {
+    const question = inputEl.value.trim();
+    if (!question) return;
+    addMessage(question, "user");
+    inputEl.value = "";
+
+    try {
+      const res = await fetch(API_BASE.replace(/\/$/, "") + "/faqs/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ question, providerId: PROVIDER_ID || undefined }),
+      });
+      const data = await res.json();
+      addMessage(data.answer, "bot");
+    } catch (err) {
+      console.error("Chatbot: ask failed", err);
+      addMessage("Something went wrong reaching the server. Try again in a moment.", "bot");
+    }
+  }
+
+  sendBtn.addEventListener("click", sendQuestion);
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendQuestion();
+  });
 })();
