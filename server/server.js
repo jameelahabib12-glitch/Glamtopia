@@ -11,6 +11,9 @@ const faqRoutes = require("./routes/faqRoutes");
 const availabilityRoutes = require("./routes/availabilityRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const providerRoutes = require("./routes/providerRoutes");
+const serviceRoutes = require("./routes/serviceRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 
 const app = express();
 
@@ -54,6 +57,9 @@ app.use("/api/faqs", faqRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/providers", providerRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // Serve uploaded profile photos statically (e.g. GET /uploads/profile-photos/xyz.jpg)
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
