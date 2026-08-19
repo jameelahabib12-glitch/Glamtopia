@@ -1,10 +1,7 @@
 const User = require("../models/User");
 const ProviderProfile = require("../models/ProviderProfile");
 
-// GET /api/profile — the logged-in user's own profile
-// (For providers, this is a convenience wrapper around what
-// GET /api/providers/me already returns — kept here so one endpoint
-// covers "my profile" regardless of role, for a shared profile page.)
+// GET /api/profile
 async function getMyProfile(req, res) {
   try {
     const user = await User.findById(req.session.userId).select("-password");
@@ -17,7 +14,7 @@ async function getMyProfile(req, res) {
       return res.json({ user });
     }
 
-    const profile = await ProviderProfile.findOne({ user_id: req.session.userId });
+    const profile = await ProviderProfile.findOne({ user: req.session.userId });
     return res.json({ user, profile });
   } catch (err) {
     console.error("Get profile error:", err.message);
@@ -26,10 +23,10 @@ async function getMyProfile(req, res) {
 }
 
 // PUT /api/profile
-// Both roles can update name/email/phone_number. Providers additionally
-// update their business_name/bio/location/category/contact_info here.
-// Services and availability are NOT handled here — they're their own
-// collections with their own controllers (serviceController, availabilityController).
+// Both roles can update name/email. Customers additionally update bio/photo.
+// Providers additionally update bio/services/availability (on ProviderProfile).
+// Route is wired with multer (uploadPhoto.single("photo")), so req.body holds
+// the text fields and req.file (if present) holds the uploaded photo.
 async function updateMyProfile(req, res) {
   try {
     const user = await User.findById(req.session.userId);
@@ -37,41 +34,38 @@ async function updateMyProfile(req, res) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { name, email, phone_number, business_name, bio, location, category, contact_info } = req.body;
+    const { name, email, bio, services, availability } = req.body;
 
     if (name && name.trim() !== "") user.name = name.trim();
     if (email && email.trim() !== "") user.email = email.trim().toLowerCase();
-    if (phone_number !== undefined) user.phone_number = phone_number;
-    await user.save();
 
     if (user.role === "customer") {
+      if (bio !== undefined) user.bio = bio.trim();
+      if (req.file) user.photo = `/uploads/profile-photos/${req.file.filename}`;
+      await user.save();
+
       return res.json({
         message: "Profile updated successfully",
-        user: { id: user._id, name: user.name, email: user.email, phone_number: user.phone_number, role: user.role },
+        user: { id: user._id, name: user.name, email: user.email, role: user.role, bio: user.bio, photo: user.photo }
       });
     }
 
-    const profileUpdates = {};
-    if (business_name !== undefined) profileUpdates.business_name = business_name;
-    if (bio !== undefined) profileUpdates.bio = bio;
-    if (location !== undefined) profileUpdates.location = location;
-    if (category !== undefined) profileUpdates.category = category;
-    if (contact_info !== undefined) profileUpdates.contact_info = contact_info;
+    await user.save();
 
-    const profile = await ProviderProfile.findOneAndUpdate(
-      { user_id: req.session.userId },
-      { $set: profileUpdates },
-      { new: true, runValidators: true }
-    );
-
+    let profile = await ProviderProfile.findOne({ user: req.session.userId });
     if (!profile) {
-      return res.status(404).json({ message: "No provider profile yet — create one first via POST /api/providers" });
+      profile = new ProviderProfile({ user: req.session.userId });
     }
+
+    if (bio !== undefined) profile.bio = bio;
+    if (services !== undefined) profile.services = services;
+    if (availability !== undefined) profile.availability = availability;
+    await profile.save();
 
     return res.json({
       message: "Provider profile updated successfully",
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      profile,
+      profile: { id: profile._id, bio: profile.bio, services: profile.services, availability: profile.availability }
     });
   } catch (err) {
     console.error("Update profile error:", err.message);
@@ -86,7 +80,7 @@ async function getPublicProviderProfile(req, res) {
     if (!user) {
       return res.status(404).json({ message: "Provider not found" });
     }
-    const profile = await ProviderProfile.findOne({ user_id: user._id });
+    const profile = await ProviderProfile.findOne({ user: user._id });
     return res.json({ user, profile });
   } catch (err) {
     console.error("Public profile error:", err.message);

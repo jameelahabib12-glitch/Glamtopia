@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   
+    <title>Provider Profile</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .service {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .service input:first-child {
+            flex: 2;
+        }
+
+        .service input:nth-child(2) {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            margin-top: 5px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 13px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Edit Provider Profile</h1>
+
+        <form id="profileForm">
+
+            <label for="name">Name</label>
+            <input
+                type="text"
+                id="name"
+                placeholder="Enter your name"
+                required
+            >
+
+            <label for="email">Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                required
+            >
+
+            <label for="bio">Bio</label>
+            <textarea
+                id="bio"
+                placeholder="Tell customers about yourself..."
+            ></textarea>
+
+
+            <label>Services & Pricing</label>
+
+            <div id="servicesContainer"></div>
+
+            <button
+                type="button"
+                class="add-btn"
+                id="addServiceBtn"
+            >
+                + Add Service
+            </button>
+
+
+            <label for="availability">Availability</label>
+
+            <textarea
+                id="availability"
+                placeholder="Example: Monday to Friday, 4 PM - 8 PM"
+            ></textarea>
+
+
+            <button
+                type="submit"
+                class="save-btn"
+            >
+                Save Profile
+            </button>
+
+        </form>
+
+        <div id="message"></div>
+
+    </div>
+
+    <script src="profile-provider.js"></script>
+
+</body>
+</html>
