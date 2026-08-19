@@ -55,7 +55,7 @@
         </button>
       </div>
 
-      <!-- Static skeleton: no auth wired yet, form does not submit anywhere -->
+      <!-- Wired to POST /api/auth/register (see server/controllers/authController.js) -->
       <form id="register-form" class="space-y-4" novalidate>
         <div>
           <label for="name" class="text-sm font-semibold block mb-1">Full name</label>
@@ -97,36 +97,92 @@
   </footer>
 
   <script>
+    const API_BASE = "http://localhost:5000";
+
     const roleButtons = document.querySelectorAll(".role-btn");
     const phoneField = document.getElementById("phone-field");
     const phoneInput = document.getElementById("phone");
+    let selectedRole = "customer"; // matches the default aria-pressed="true" button above
 
     roleButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         roleButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
         btn.setAttribute("aria-pressed", "true");
+        selectedRole = btn.dataset.role;
 
-        const isCustomer = btn.dataset.role === "customer";
+        const isCustomer = selectedRole === "customer";
         phoneField.classList.toggle("hidden", !isCustomer);
         phoneInput.required = isCustomer; // required for customers per FR-11, optional at signup for providers
       });
     });
 
-    // Skeleton-only validation. Real submit handler wires to /api/auth/register.
-    document.getElementById("register-form").addEventListener("submit", (e) => {
+    const registerForm = document.getElementById("register-form");
+    const errorEl = document.getElementById("form-error");
+    const submitButton = registerForm.querySelector("button[type='submit']");
+
+    registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const errorEl = document.getElementById("form-error");
+
       const name = document.getElementById("name").value.trim();
       const email = document.getElementById("email").value.trim();
+      const phone = phoneInput.value.trim();
       const password = document.getElementById("password").value;
+
+      errorEl.classList.add("hidden");
+      errorEl.textContent = "";
 
       if (!name || !email || !password) {
         errorEl.textContent = "Fill in your name, email, and password to continue.";
         errorEl.classList.remove("hidden");
         return;
       }
-      errorEl.classList.remove("hidden");
-      errorEl.textContent = "Auth isn't wired up yet — this is a static skeleton.";
+
+      if (selectedRole === "customer" && !phone) {
+        errorEl.textContent = "Phone number is required for customer accounts.";
+        errorEl.classList.remove("hidden");
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Creating account…";
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // logs the user straight in via the session cookie
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            role: selectedRole,
+            phone_number: phone || null,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorEl.textContent = data.message || "Registration failed.";
+          errorEl.classList.remove("hidden");
+          submitButton.disabled = false;
+          submitButton.textContent = "Create account";
+          return;
+        }
+
+        // Provider → provider profile, Customer → home. Same routing as login.html.
+        if (data.user && data.user.role === "provider") {
+          window.location.href = "profile-provider.html";
+        } else {
+          window.location.href = "index.html";
+        }
+      } catch (error) {
+        console.error("Registration connection error:", error);
+        errorEl.textContent = "Server connection error. Please make sure Glamtopia backend is running on port 5000.";
+        errorEl.classList.remove("hidden");
+        submitButton.disabled = false;
+        submitButton.textContent = "Create account";
+      }
     });
   </script>
   <script src="js/nav.js"></script>
