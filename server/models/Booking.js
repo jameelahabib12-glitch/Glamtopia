@@ -1,49 +1,52 @@
 const mongoose = require("mongoose");
 
-// The core transactional record linking a customer, provider, service, and slot.
-// See Glamtopia_ERD_Final.docx, Section 2 ("bookings") and Section 5 (lifecycle).
+// PLACEHOLDER — Booking is Jameela's Week 2 deliverable (booking creation +
+// conflict prevention, per the WBS critical path). This minimal version
+// exists only so Review can be tested locally right now (reviews require
+// a completed booking to exist). Replace/reconcile this with Jameela's
+// real Booking model as soon as she has it — do not treat this as final.
 const bookingSchema = new mongoose.Schema(
     {
-        customer_id: {
+        customer: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: [true, "customer_id is required"],
+            required: true
         },
-        provider_id: {
+
+        provider: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "ProviderProfile",
-            required: [true, "provider_id is required"],
+            ref: "User",
+            required: true
         },
-        service_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Service",
-            required: [true, "service_id is required"],
+
+        serviceName: {
+            type: String,
+            required: true,
+            trim: true
         },
-        slot_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "AvailabilitySlot",
-            required: [true, "slot_id is required"],
-            unique: true, // one booking per slot — mirrors the atomic booked:false -> true claim
+
+        price: {
+            type: Number,
+            required: true,
+            min: 0
         },
+
+        bookingDate: {
+            type: Date,
+            required: true
+        },
+
         status: {
             type: String,
             enum: ["pending", "confirmed", "completed", "cancelled"],
-            default: "pending",
-        },
-        price_at_booking: {
-            type: Number,
-            required: [true, "price_at_booking is required"],
-            min: [0, "price_at_booking must be non-negative"],
-        },
-        confirmed_at: { type: Date, default: null },
-        completed_at: { type: Date, default: null },
-        cancelled_at: { type: Date, default: null },
+            default: "pending"
+        }
     },
-    { timestamps: { createdAt: "created_at", updatedAt: false } }
+    {
+        timestamps: true
+    }
 );
 
-// Common dashboard queries: "my bookings as a customer" / "my incoming bookings as a provider"
-bookingSchema.index({ customer_id: 1, status: 1 });
-bookingSchema.index({ provider_id: 1, status: 1 });
-
-module.exports = mongoose.model("Booking", bookingSchema);
+module.exports =
+    mongoose.models.Booking ||
+    mongoose.model("Booking", bookingSchema);

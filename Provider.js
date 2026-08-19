@@ -4,6 +4,10 @@
  * browse skeleton only. Per SRS FR-13, guests are only pushed to
  * login/register at the point of booking, never before.
  */
+
+// Backend base URL — change if the API runs somewhere other than localhost:5000
+const REVIEWS_API_BASE = "http://localhost:5000";
+
 (async function initProvider() {
   const root = document.getElementById("profile-root");
   const id = new URLSearchParams(window.location.search).get("id");
@@ -23,7 +27,76 @@
   document.title = `${provider.business_name} — Glamtopia`;
   root.innerHTML = renderProfile(provider);
   bindBookingButtons();
+
+  // NOTE (coordinate with Alishba): this page is still driven by MockAPI, so
+  // `id` here is a mock id, not a real Mongo ObjectId. Once real provider
+  // data replaces the mock data, this same `id` needs to be the provider's
+  // real User _id for the reviews endpoint below to return anything.
+  await loadAndRenderReviews(id);
 })();
+
+// Fetches real review data from the backend (Reviews Task 3/4) and injects
+// a "Reviews" section into the page, right after the Availability section.
+async function loadAndRenderReviews(providerId) {
+  const reviewsSection = document.createElement("section");
+  reviewsSection.className = "mb-8";
+  reviewsSection.id = "reviews-section";
+  reviewsSection.innerHTML = `<h2 class="font-display text-2xl text-glam-ink mb-4">Reviews</h2>
+    <div class="glam-card p-6 text-glam-ink/60 text-sm">Loading reviews…</div>`;
+  document.getElementById("profile-root").appendChild(reviewsSection);
+
+  try {
+    const response = await fetch(`${REVIEWS_API_BASE}/api/reviews/provider/${providerId}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      reviewsSection.querySelector(".glam-card").textContent = data.message || "Unable to load reviews.";
+      return;
+    }
+
+    reviewsSection.innerHTML = renderReviewsSection(data);
+  } catch (err) {
+    console.log(err);
+    reviewsSection.querySelector(".glam-card").textContent = "Could not connect to the server to load reviews.";
+  }
+}
+
+function renderReviewsSection(data) {
+  const { totalReviews, averageRating, reviews } = data;
+
+  if (!totalReviews) {
+    return `
+      <h2 class="font-display text-2xl text-glam-ink mb-4">Reviews</h2>
+      <div class="glam-card p-6 text-glam-ink/60 text-sm">No reviews yet.</div>
+    `;
+  }
+
+  return `
+    <h2 class="font-display text-2xl text-glam-ink mb-4">
+      Reviews
+      <span class="text-base font-normal text-glam-ink/60">
+        · ★ ${averageRating.toFixed(1)} (${totalReviews} review${totalReviews === 1 ? "" : "s"})
+      </span>
+    </h2>
+    <div class="grid gap-4">
+      ${reviews.map(renderReviewCard).join("")}
+    </div>
+  `;
+}
+
+function renderReviewCard(r) {
+  const customerName = r.customer && r.customer.name ? r.customer.name : "Anonymous";
+  const date = new Date(r.createdAt).toLocaleDateString();
+  return `
+    <div class="glam-card p-5">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold">${customerName}</p>
+        <p class="text-sm text-glam-ink/60">★ ${r.rating}/5 · ${date}</p>
+      </div>
+      ${r.comment ? `<p class="text-glam-ink/70 mt-2">${r.comment}</p>` : ""}
+    </div>
+  `;
+}
 
 function renderProfile(p) {
   return `
@@ -37,10 +110,11 @@ function renderProfile(p) {
             <span class="text-glam-ink/50 font-normal">(${p.review_count} reviews)</span>
           </p>
         </div>
-        ${p.fully_booked
-      ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
-      : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
-    }
+        ${
+          p.fully_booked
+            ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
+            : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
+        }
       </div>
       <p class="text-glam-ink/70 mt-6 max-w-2xl">${p.bio}</p>
       <p class="text-sm text-glam-ink/60 mt-3">Contact: ${p.contact_info}</p>
@@ -94,13 +168,13 @@ function renderAvailability(p) {
   return `
     <div class="flex flex-wrap gap-3">
       ${mockSlots
-      .map(
-        (slot) => `
+        .map(
+          (slot) => `
         <button type="button" class="book-btn glam-chip px-4 py-2 rounded-full text-sm" data-service="${slot}">
           ${slot}
         </button>`
-      )
-      .join("")}
+        )
+        .join("")}
     </div>
     <p class="text-xs text-glam-ink/50 mt-3">Placeholder slots — wired to <code>availability_slots</code> in the real build.</p>
   `;

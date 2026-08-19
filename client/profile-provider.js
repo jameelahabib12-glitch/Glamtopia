@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:5000/api";
+// Change this if your backend runs somewhere other than localhost:5000
+const API_BASE = "http://localhost:5000";
 
 const profileForm = document.getElementById("profileForm");
 
@@ -79,7 +80,7 @@ async function loadProfile() {
 
     try {
 
-        const response = await fetch(`${API_BASE}/profile`, {
+        const response = await fetch(`${API_BASE}/api/profile`, {
             method: "GET",
             credentials: "include"
         });
@@ -209,7 +210,7 @@ profileForm.addEventListener("submit", async (event) => {
     try {
 
         const response = await fetch(
-            `${API_BASE}/profile`,
+            `${API_BASE}/api/profile`,
             {
                 method: "PUT",
 

@@ -1,11 +1,31 @@
-const API_BASE = "http://localhost:5000/api";
-
 const customerProfileForm = document.getElementById("customerProfileForm");
 
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
+const bioInput = document.getElementById("bio");
+const photoInput = document.getElementById("photo");
+const photoPreview = document.getElementById("photoPreview");
 
 const message = document.getElementById("message");
+
+// Change this if your backend runs somewhere other than localhost:5000
+const API_BASE = "http://localhost:5000";
+
+
+// ==========================================
+// PHOTO PREVIEW (before upload)
+// ==========================================
+
+photoInput.addEventListener("change", () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        photoPreview.innerHTML = `<img src="${e.target.result}" alt="Profile photo preview">`;
+    };
+    reader.readAsDataURL(file);
+});
 
 
 // ==========================================
@@ -16,7 +36,7 @@ async function loadProfile() {
 
     try {
 
-        const response = await fetch(`${API_BASE}/profile`, {
+        const response = await fetch(`${API_BASE}/api/profile`, {
             method: "GET",
             credentials: "include"
         });
@@ -31,6 +51,11 @@ async function loadProfile() {
         if (data.user) {
             nameInput.value = data.user.name || "";
             emailInput.value = data.user.email || "";
+            bioInput.value = data.user.bio || "";
+
+            if (data.user.photo) {
+                photoPreview.innerHTML = `<img src="${API_BASE}${data.user.photo}" alt="Profile photo">`;
+            }
         }
 
     } catch (error) {
@@ -44,32 +69,33 @@ async function loadProfile() {
 
 // ==========================================
 // SAVE PROFILE
-// (bio/photo are collected in the form already so the UI is ready, but
-//  only name/email are sent for now — bio+photo need the customer
-//  profile schema decided in Week 2, same as the WBS scopes it)
+// Uses FormData (not JSON) because a photo file may be attached.
 // ==========================================
 
 customerProfileForm.addEventListener("submit", async (event) => {
 
     event.preventDefault();
 
-    const profileData = {
-        name: nameInput.value.trim(),
-        email: emailInput.value.trim()
-    };
+    const formData = new FormData();
+    formData.append("name", nameInput.value.trim());
+    formData.append("email", emailInput.value.trim());
+    formData.append("bio", bioInput.value.trim());
+
+    if (photoInput.files[0]) {
+        formData.append("photo", photoInput.files[0]);
+    }
 
     try {
 
-        const response = await fetch(`${API_BASE}/profile`, {
+        const response = await fetch(`${API_BASE}/api/profile`, {
             method: "PUT",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
-
+            // NOTE: don't set Content-Type manually here — the browser sets
+            // the correct multipart/form-data boundary automatically when
+            // the body is a FormData object.
             credentials: "include",
 
-            body: JSON.stringify(profileData)
+            body: formData
         });
 
         const data = await response.json();
@@ -80,6 +106,10 @@ customerProfileForm.addEventListener("submit", async (event) => {
         }
 
         message.textContent = "Profile updated successfully!";
+
+        if (data.user && data.user.photo) {
+            photoPreview.innerHTML = `<img src="${API_BASE}${data.user.photo}" alt="Profile photo">`;
+        }
 
         console.log(data);
 
