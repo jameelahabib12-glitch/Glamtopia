@@ -64,6 +64,7 @@ body {
   box-shadow: 0 4px 14px rgba(51, 64, 42, 0.1), 0 1px 3px rgba(51, 64, 42, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
 .glam-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 32px rgba(51, 64, 42, 0.16), 0 4px 10px rgba(51, 64, 42, 0.1);
@@ -87,10 +88,12 @@ body {
   box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
   transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
+
 .glam-btn-primary:hover {
   background-color: var(--glam-gold);
   box-shadow: 0 6px 16px rgba(51, 64, 42, 0.24);
 }
+
 .glam-btn-primary:active {
   transform: translateY(1px);
 }
@@ -101,6 +104,7 @@ body {
   background: rgba(255, 253, 244, 0.4);
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
+
 .glam-btn-outline:hover {
   background-color: var(--glam-ink);
   color: #fff;
@@ -115,9 +119,11 @@ body {
   -webkit-backdrop-filter: blur(6px);
   transition: all 0.15s ease;
 }
+
 .glam-chip:hover {
   border-color: var(--glam-rose);
 }
+
 .glam-chip[aria-pressed="true"] {
   background-color: var(--glam-rose);
   border-color: var(--glam-rose);
@@ -128,6 +134,7 @@ body {
 .glam-status-available {
   color: var(--glam-sage);
 }
+
 .glam-status-full {
   color: var(--glam-warn);
 }
@@ -139,11 +146,13 @@ body {
 #nav-menu {
   transition: max-height 0.2s ease, opacity 0.15s ease;
 }
+
 #nav-menu.nav-closed {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
 }
+
 #nav-menu.nav-open {
   max-height: 24rem;
   opacity: 1;
@@ -163,18 +172,22 @@ select:focus-visible {
   .font-display {
     letter-spacing: -0.01em;
   }
+
   .glam-card:hover {
-    transform: none; /* avoid hover-lift jank on touch devices */
+    transform: none;
+    /* avoid hover-lift jank on touch devices */
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .glam-card,
   .glam-btn-primary,
   .glam-btn-outline,
   #nav-menu {
     transition: none;
   }
+
   .glam-card:hover {
     transform: none;
   }
