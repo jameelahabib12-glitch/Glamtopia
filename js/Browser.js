@@ -126,7 +126,7 @@
         <p class="text-sm text-glam-ink/60 mt-1">${p.location}</p>
         <p class="text-sm text-glam-ink/70 mt-3 line-clamp-2">${p.bio}</p>
         <div class="flex items-center justify-between mt-4">
-          <span class="text-sm font-semibold"><span class="glam-accent">★</span> ${p.average_rating.toFixed(1)} <span class="text-glam-ink/50 font-normal">(${p.review_count})</span></span>
+          <span class="text-sm font-semibold">★ ${p.average_rating.toFixed(1)} <span class="text-glam-ink/50 font-normal">(${p.review_count})</span></span>
           ${statusLabel}
         </div>
         <p class="text-xs text-glam-ink/50 mt-2">From PKR ${minPrice(p).toLocaleString()}</p>

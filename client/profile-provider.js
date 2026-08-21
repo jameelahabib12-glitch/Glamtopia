@@ -1,259 +1,141 @@
-// Change this if your backend runs somewhere other than localhost:5000
-const API_BASE = "http://localhost:5000";
+const API_BASE = "http://localhost:5000/api";
 
 const profileForm = document.getElementById("profileForm");
-
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
+const businessNameInput = document.getElementById("business_name");
+const locationInput = document.getElementById("location");
+const categoryInput = document.getElementById("category");
+const contactInfoInput = document.getElementById("contact_info");
 const bioInput = document.getElementById("bio");
-const availabilityInput = document.getElementById("availability");
+const message = document.getElementById("message");
+const saveBtn = document.getElementById("saveBtn");
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
 
-const servicesContainer =
-    document.getElementById("servicesContainer");
-
-const addServiceBtn =
-    document.getElementById("addServiceBtn");
-
-const message =
-    document.getElementById("message");
-
+// Whether the logged-in provider already has a ProviderProfile.
+// null profile = brand new provider = create mode = POST /api/providers.
+// existing profile = edit mode = PATCH /api/providers/me.
+let hasExistingProfile = false;
 
 // ==========================================
-// ADD SERVICE INPUT
-// ==========================================
-
-function addService(name = "", price = "") {
-
-    const serviceDiv = document.createElement("div");
-
-    serviceDiv.className = "service";
-
-    serviceDiv.innerHTML = `
-        <input
-            type="text"
-            class="service-name"
-            placeholder="Service name"
-            value="${name}"
-        >
-
-        <input
-            type="number"
-            class="service-price"
-            placeholder="Price"
-            value="${price}"
-            min="0"
-        >
-
-        <button
-            type="button"
-            class="remove-btn"
-        >
-            Remove
-        </button>
-    `;
-
-    const removeButton =
-        serviceDiv.querySelector(".remove-btn");
-
-    removeButton.addEventListener("click", () => {
-        serviceDiv.remove();
-    });
-
-    servicesContainer.appendChild(serviceDiv);
-}
-
-
-// ==========================================
-// ADD SERVICE BUTTON
-// ==========================================
-
-addServiceBtn.addEventListener("click", () => {
-    addService();
-});
-
-
-// ==========================================
-// LOAD PROFILE
+// LOAD PROFILE (also doubles as the auth/role check)
 // ==========================================
 
 async function loadProfile() {
-
     try {
-
-        const response = await fetch(`${API_BASE}/api/profile`, {
+        const response = await fetch(`${API_BASE}/auth/me`, {
             method: "GET",
-            credentials: "include"
+            credentials: "include",
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            message.textContent = data.message || "Unable to load profile";
+            window.location.href = "../login.html";
             return;
         }
 
-
-        // User information
-        if (data.user) {
-
-            nameInput.value =
-                data.user.name || "";
-
-            emailInput.value =
-                data.user.email || "";
+        const authData = await response.json();
+        if (authData.user.role !== "provider") {
+            window.location.href = "../customer-dashboard.html";
+            return;
         }
 
+        nameInput.value = authData.user.name || "";
+        emailInput.value = authData.user.email || "";
 
-        // Provider profile
-        if (data.profile) {
+        const profileRes = await fetch(`${API_BASE}/profile`, {
+            method: "GET",
+            credentials: "include",
+        });
+        const profileData = await profileRes.json();
 
-            bioInput.value =
-                data.profile.bio || "";
+        if (profileData.profile) {
+            hasExistingProfile = true;
+            pageTitle.textContent = "Edit Your Provider Profile";
+            pageSubtitle.textContent = "Update your public business profile below.";
+            saveBtn.textContent = "Save Changes";
 
-            availabilityInput.value =
-                data.profile.availability || "";
-
-
-            servicesContainer.innerHTML = "";
-
-
-            if (
-                data.profile.services &&
-                data.profile.services.length > 0
-            ) {
-
-                data.profile.services.forEach(service => {
-
-                    addService(
-                        service.name,
-                        service.price
-                    );
-
-                });
-
-            } else {
-
-                addService();
-
-            }
-
-        } else {
-
-            addService();
-
+            businessNameInput.value = profileData.profile.business_name || "";
+            locationInput.value = profileData.profile.location || "";
+            categoryInput.value = profileData.profile.category || "";
+            contactInfoInput.value = profileData.profile.contact_info || "";
+            bioInput.value = profileData.profile.bio || "";
         }
+        // else: stay in create mode, form starts blank — this is the
+        // brand-new-provider path that was broken before.
 
     } catch (error) {
-
-        console.log(error);
-
-        message.textContent =
-            "Server connection error";
+        console.error(error);
+        message.textContent = "Server connection error";
     }
 }
 
-
 // ==========================================
-// SAVE PROFILE
+// SAVE PROFILE (create OR update, depending on mode)
 // ==========================================
 
 profileForm.addEventListener("submit", async (event) => {
-
     event.preventDefault();
 
-
-    const serviceInputs =
-        document.querySelectorAll(".service");
-
-
-    const services = [];
-
-
-    serviceInputs.forEach(service => {
-
-        const serviceName =
-            service.querySelector(".service-name").value.trim();
-
-        const servicePrice =
-            Number(
-                service.querySelector(".service-price").value
-            );
-
-
-        if (serviceName && servicePrice >= 0) {
-
-            services.push({
-                name: serviceName,
-                price: servicePrice
-            });
-
-        }
-
-    });
-
+    message.textContent = "";
+    saveBtn.disabled = true;
+    saveBtn.textContent = hasExistingProfile ? "Saving…" : "Creating profile…";
 
     const profileData = {
-
         name: nameInput.value.trim(),
-
         email: emailInput.value.trim(),
-
+        business_name: businessNameInput.value.trim(),
+        location: locationInput.value.trim(),
+        category: categoryInput.value,
+        contact_info: contactInfoInput.value.trim(),
         bio: bioInput.value.trim(),
-
-        services: services,
-
-        availability:
-            availabilityInput.value.trim()
     };
 
-
     try {
+        let response;
 
-        const response = await fetch(
-            `${API_BASE}/api/profile`,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
+        if (hasExistingProfile) {
+            // Editing an existing profile — business fields go through
+            // /api/providers/me.
+            response = await fetch(`${API_BASE}/providers/me`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
                 credentials: "include",
-
-                body: JSON.stringify(profileData)
-            }
-        );
-
+                body: JSON.stringify(profileData),
+            });
+        } else {
+            // First-time setup — this is the actual fix: brand-new providers
+            // must POST to /api/providers to create their profile, not PUT
+            // to /api/profile (which has nothing to update yet).
+            response = await fetch(`${API_BASE}/providers`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(profileData),
+            });
+        }
 
         const data = await response.json();
 
-
         if (!response.ok) {
-
-            message.textContent =
-                data.message || "Profile update failed";
-
+            message.textContent = data.message || "Could not save your profile.";
+            saveBtn.disabled = false;
+            saveBtn.textContent = hasExistingProfile ? "Save Changes" : "Save Profile";
             return;
         }
 
-
-        message.textContent =
-            "Profile updated successfully!";
-
-
-        console.log(data);
-
+        message.textContent = "Profile saved! Taking you to your dashboard…";
+        setTimeout(() => {
+            window.location.href = "provider-dashboard.html";
+        }, 600);
 
     } catch (error) {
-
-        console.log(error);
-
-        message.textContent =
-            "Server connection error";
+        console.error(error);
+        message.textContent = "Server connection error";
+        saveBtn.disabled = false;
+        saveBtn.textContent = hasExistingProfile ? "Save Changes" : "Save Profile";
     }
-
 });
-
 
 // ==========================================
 // LOAD PROFILE WHEN PAGE OPENS

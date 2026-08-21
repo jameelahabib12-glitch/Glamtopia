@@ -12,32 +12,80 @@
             theme: {
                 extend: {
                     colors: {
-                        glamCream: '#f6f0d7',
-                        glamLightSage: '#c5d89d',
-                        glamSage: '#9cab84',
-                        glamOlive: '#89986d',
+                        glamCream: '#FFFFFF',
+                        glamLightSage: '#D99B7F',
+                        glamSage: '#464858',
+                        glamOlive: '#0F3040',
+                        glamPeach: '#D99B7F',
+                        glamTerracotta: '#A56F63',
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom Glassmorphism & Transition Styles */
         .glass-card {
-            background: rgba(246, 240, 215, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(156, 171, 132, 0.3);
+            background: #FFFFFF;
+            border: 1px solid rgba(70, 72, 88, 0.14);
+            box-shadow: 0 2px 8px rgba(15, 48, 64, 0.06);
         }
 
         .glass-card-opaque {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
+            background: #FFFFFF;
+            border: 1px solid rgba(70, 72, 88, 0.12);
+            box-shadow: 0 2px 10px rgba(15, 48, 64, 0.06);
+        }
+
+        .stat-card {
+            cursor: pointer;
+        }
+
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            animation: toastIn 0.2s ease-out;
+        }
+
+        .toast.success {
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .toast.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
 <body class="bg-glamCream text-glamOlive min-h-screen font-sans selection:bg-glamLightSage selection:text-glamOlive">
+
+    <div id="toastContainer"></div>
 
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-50 glass-card border-b border-glamSage/20 shadow-sm">
@@ -49,9 +97,8 @@
                     Portal</span>
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-sm font-medium hidden md:inline">Welcome, <strong id="providerName">Amina's
-                        Salon</strong></span>
-                <button
+                <span class="text-sm font-medium hidden md:inline">Welcome, <strong id="providerName">…</strong></span>
+                <button id="logoutBtn"
                     class="text-sm font-medium px-4 py-2 rounded-lg bg-glamOlive text-glamCream hover:bg-glamSage transition-all shadow-md">Logout</button>
             </div>
         </div>
@@ -62,29 +109,29 @@
 
         <!-- Dashboard Overview Metrics Cards -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-                class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div id="cardPending"
+                class="stat-card glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Pending Requests</p>
-                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">3</h3>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive" id="metricPending">—</h3>
                 <p class="text-xs text-glamOlive/70 mt-1">Require confirmation</p>
             </div>
-            <div
-                class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div id="cardConfirmed"
+                class="stat-card glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Confirmed Bookings</p>
-                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">12</h3>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive" id="metricConfirmed">—</h3>
                 <p class="text-xs text-glamOlive/70 mt-1">Upcoming appointments</p>
             </div>
-            <div
-                class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div id="cardRating"
+                class="stat-card glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Average Rating</p>
-                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive flex items-center">4.9 <span
-                        class="text-yellow-600 text-xl ml-1">★</span></h3>
-                <p class="text-xs text-glamOlive/70 mt-1">From verified reviews</p>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive flex items-center"><span
+                        id="metricRating">—</span> <span class="text-glamPeach text-xl ml-1">★</span></h3>
+                <p class="text-xs text-glamOlive/70 mt-1">Click to see reviews</p>
             </div>
-            <div
-                class="glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div id="cardServices"
+                class="stat-card glass-card p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <p class="text-xs font-bold uppercase tracking-wider text-glamSage">Active Services</p>
-                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive">5</h3>
+                <h3 class="text-3xl font-extrabold mt-2 text-glamOlive" id="metricServices">—</h3>
                 <p class="text-xs text-glamOlive/70 mt-1">Listed on storefront</p>
             </div>
         </section>
@@ -96,7 +143,7 @@
             <div class="lg:col-span-2 space-y-8">
 
                 <!-- Bookings Management Section -->
-                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+                <div id="bookingsSection" class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
                     <div
                         class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b border-glamSage/20 gap-4">
                         <div>
@@ -104,74 +151,21 @@
                             <p class="text-sm text-glamOlive/70">Manage client reservations and confirm pending
                                 requests.</p>
                         </div>
-                        <div class="flex space-x-2 w-full sm:w-auto" id="bookingTabs">
-                            <button
+                        <div class="flex space-x-2 w-full sm:w-auto flex-wrap gap-y-2" id="bookingTabs">
+                            <button data-status="all"
                                 class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-glamLightSage text-glamOlive shadow-sm">All</button>
-                            <button
+                            <button data-status="pending"
                                 class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Pending</button>
-                            <button
+                            <button data-status="confirmed"
                                 class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Confirmed</button>
-                            <button
+                            <button data-status="completed"
                                 class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Completed</button>
                         </div>
                     </div>
 
-                    <!-- Bookings List -->
+                    <!-- Bookings List — populated by loadBookings() -->
                     <div class="space-y-4" id="bookingsListContainer">
-                        <!-- Pending Booking -->
-                        <div
-                            class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
-                            <div class="space-y-1">
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-bold text-glamOlive">Bridal Glam Makeup</span>
-                                    <span
-                                        class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 rounded-full">Pending</span>
-                                </div>
-                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Sarah
-                                        Ahmed</span></p>
-                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 16, 2026 — 02:00 PM (1 Hour)</p>
-                            </div>
-                            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                                <button
-                                    class="px-3 py-1.5 text-xs font-semibold bg-glamOlive text-glamCream rounded-lg hover:bg-glamSage transition-all shadow-sm">Confirm
-                                    Booking</button>
-                            </div>
-                        </div>
-
-                        <!-- Confirmed Booking -->
-                        <div
-                            class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
-                            <div class="space-y-1">
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-bold text-glamOlive">Party Makeup</span>
-                                    <span
-                                        class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 rounded-full">Confirmed</span>
-                                </div>
-                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Zara Ali</span>
-                                </p>
-                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 17, 2026 — 10:00 AM (1 Hour)</p>
-                            </div>
-                            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                                <button
-                                    class="px-3 py-1.5 text-xs font-semibold bg-glamLightSage text-glamOlive rounded-lg transition-all shadow-sm">Mark
-                                    Completed</button>
-                            </div>
-                        </div>
-
-                        <!-- Completed Booking -->
-                        <div
-                            class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
-                            <div class="space-y-1">
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-bold text-glamOlive">Keratin Hair Treatment</span>
-                                    <span
-                                        class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800 rounded-full">Completed</span>
-                                </div>
-                                <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">Ayesha
-                                        Khan</span></p>
-                                <p class="text-xs text-glamOlive/60">📅 Slot: Aug 14, 2026 — 11:00 AM (1 Hour)</p>
-                            </div>
-                        </div>
+                        <p class="text-xs text-glamOlive/60 italic">Loading bookings…</p>
                     </div>
                 </div>
 
@@ -179,7 +173,7 @@
                 <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
                     <div class="flex justify-between items-center pb-4 mb-6 border-b border-glamSage/20">
                         <div>
-                            <h2 class="text-xl font-bold text-glamOlive">Manage Weekly Availability Slots</h2>
+                            <h2 class="text-xl font-bold text-glamOlive">Manage Availability Slots</h2>
                             <p class="text-sm text-glamOlive/70">Open 1-hour time blocks for booking requests.</p>
                         </div>
                         <button id="openSlotModalBtn"
@@ -187,28 +181,17 @@
                             Add Slot</button>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center">
-                            <p class="text-xs font-bold text-glamOlive">Monday</p>
-                            <p class="text-xs text-glamOlive/70 my-1">10:00 AM - 06:00 PM</p>
-                            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> <span
-                                class="text-[10px] font-semibold">Active</span>
-                        </div>
-                        <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center">
-                            <p class="text-xs font-bold text-glamOlive">Tuesday</p>
-                            <p class="text-xs text-glamOlive/70 my-1">10:00 AM - 06:00 PM</p>
-                            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> <span
-                                class="text-[10px] font-semibold">Active</span>
-                        </div>
+                    <div id="availabilitySlotsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <p class="col-span-full text-xs text-glamOlive/60 italic">Loading availability…</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Service Management & Chatbot Preview -->
+            <!-- Right Column: Service Management -->
             <div class="space-y-8">
 
                 <!-- Services Management -->
-                <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+                <div id="servicesSection" class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
                     <div class="flex justify-between items-center pb-4 mb-4 border-b border-glamSage/20">
                         <h3 class="text-lg font-bold text-glamOlive">Offered Services</h3>
                         <button id="openServiceModalBtn"
@@ -216,39 +199,8 @@
                             New Service</button>
                     </div>
 
-                    <div class="space-y-3">
-                        <div
-                            class="p-3 bg-glamCream/50 rounded-xl border border-glamSage/20 flex justify-between items-center">
-                            <div>
-                                <h4 class="text-sm font-bold text-glamOlive">Bridal Glam Makeup</h4>
-                                <p class="text-xs text-glamOlive/70">1 Hour | PKR 15,000</p>
-                            </div>
-                            <button class="text-xs text-red-600 font-semibold hover:underline">Delete</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Chatbot Widget Preview -->
-                <div
-                    class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20 relative overflow-hidden">
-                    <div
-                        class="absolute top-0 right-0 bg-glamLightSage text-glamOlive text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-                        Widget Preview</div>
-                    <h3 class="text-lg font-bold text-glamOlive mb-2">Glamtopia Assistant</h3>
-                    <p class="text-xs text-glamOlive/70 mb-4">Context-aware support widget.</p>
-
-                    <div
-                        class="bg-glamCream/80 border border-glamSage/30 rounded-xl p-3 h-36 overflow-y-auto space-y-2 text-xs mb-3">
-                        <div class="bg-glamLightSage/50 p-2 rounded-lg max-w-[85%]">
-                            Hello! How can I assist you with your salon schedule today?
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <input type="text" placeholder="Ask a question..."
-                            class="flex-1 bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-glamSage">
-                        <button
-                            class="bg-glamOlive text-glamCream px-4 py-2 rounded-xl text-xs font-bold hover:bg-glamSage transition-all">Send</button>
+                    <div class="space-y-3" id="servicesListContainer">
+                        <p class="text-xs text-glamOlive/60 italic">Loading services…</p>
                     </div>
                 </div>
             </div>
@@ -265,16 +217,20 @@
             <form id="addSlotForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-glamOlive mb-1">Date</label>
-                    <input type="date"
+                    <input type="date" id="slotDate"
                         class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
                         required>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-glamOlive mb-1">Start Time (1-Hour Slot)</label>
-                    <input type="time"
+                    <input type="time" id="slotTime"
                         class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
                         required>
+                    <!-- Per SRS §6, availability slots are fixed 1-hour blocks (see
+                         server/controllers/availabilityController.js). Not configurable
+                         here on purpose — see the Week 2 write-up for why. -->
                 </div>
+                <p id="slotFormError" class="hidden text-xs font-semibold text-red-600"></p>
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" id="closeSlotModal"
                         class="px-4 py-2 text-xs font-bold text-glamOlive hover:bg-glamSage/20 rounded-xl transition-all">Cancel</button>
@@ -286,49 +242,46 @@
         </div>
     </div>
 
-    <!-- New Service Modal -->
+    <!-- Add/Edit Service Modal -->
     <div id="addServiceModal"
         class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity">
         <div class="glass-card-opaque w-full max-w-md p-6 rounded-2xl shadow-2xl">
-            <h3 class="text-xl font-bold text-glamOlive mb-4">Add New Service</h3>
+            <h3 class="text-xl font-bold text-glamOlive mb-4" id="serviceModalTitle">Add New Service</h3>
             <form id="addServiceForm" class="space-y-4">
+                <input type="hidden" id="serviceId" value="">
                 <div>
                     <label class="block text-xs font-bold text-glamOlive mb-1">Service Name</label>
-                    <input type="text" placeholder="e.g., Bridal Makeup"
+                    <input type="text" id="serviceName" placeholder="e.g., Bridal Makeup"
                         class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
                         required>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-glamOlive mb-1">Category</label>
-                    <select
-                        class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage">
-                        <option value="hair">Hair</option>
-                        <option value="makeup">Makeup</option>
-                        <option value="nails">Nails</option>
-                        <option value="skincare">Skincare</option>
-                    </select>
+                    <label class="block text-xs font-bold text-glamOlive mb-1">Description</label>
+                    <textarea id="serviceDescription" rows="2" placeholder="What's included in this service?"
+                        class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
+                        required></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-glamOlive mb-1">Price (PKR)</label>
-                        <input type="number" placeholder="15000"
+                        <input type="number" id="servicePrice" placeholder="15000" min="0"
                             class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
                             required>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-glamOlive mb-1">Duration</label>
-                        <select
+                        <label class="block text-xs font-bold text-glamOlive mb-1">Duration (minutes)</label>
+                        <input type="number" id="serviceDuration" placeholder="60" min="1" value="60"
                             class="w-full bg-glamCream border border-glamSage/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glamSage"
-                            disabled>
-                            <option>1 Hour</option>
-                        </select>
-                        <p class="text-[10px] text-glamOlive/60 mt-1">Fixed per platform rules</p>
+                            required>
+                        <!-- This is how long the SERVICE takes (e.g. a 90-min facial) — separate
+                             from the fixed 1-hour CALENDAR slot granularity above. See write-up. -->
                     </div>
                 </div>
+                <p id="serviceFormError" class="hidden text-xs font-semibold text-red-600"></p>
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" id="closeServiceModal"
                         class="px-4 py-2 text-xs font-bold text-glamOlive hover:bg-glamSage/20 rounded-xl transition-all">Cancel</button>
-                    <button type="submit"
+                    <button type="submit" id="serviceSubmitBtn"
                         class="px-4 py-2 text-xs font-bold bg-glamOlive text-glamCream rounded-xl hover:bg-glamSage transition-all shadow-md">Add
                         Service</button>
                 </div>
@@ -336,70 +289,523 @@
         </div>
     </div>
 
+    <!-- Reviews Modal -->
+    <div id="reviewsModal"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity">
+        <div class="glass-card-opaque w-full max-w-lg p-6 rounded-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-glamOlive">Customer Reviews</h3>
+                <button id="closeReviewsModal"
+                    class="text-glamOlive/60 hover:text-glamOlive text-2xl leading-none">&times;</button>
+            </div>
+            <div id="reviewsModalContent" class="space-y-3">
+                <p class="text-xs text-glamOlive/60 italic">Loading reviews…</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Interactive JavaScript -->
     <script>
+        const API_BASE = "http://localhost:5000/api";
+        let currentProviderId = null;
+        let activeBookingFilter = "all";
+
+        // Toasts (Issue 5: clear success/error feedback on every CRUD action)
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- 1. Tab Toggling Logic ---
-            const tabButtons = document.querySelectorAll('#bookingTabs button');
-            const bookingItems = document.querySelectorAll('#bookingsListContainer > div');
+            // --- Logout (Issue 2) ---
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+                } catch (err) {
+                    console.error('Logout request failed', err);
+                } finally {
+                    window.location.href = '../login.html';
+                }
+            });
 
+            // --- Stat cards: clickable (Issue 6) ---
+            document.getElementById('cardPending').addEventListener('click', () => filterBookingsTo('pending'));
+            document.getElementById('cardConfirmed').addEventListener('click', () => filterBookingsTo('confirmed'));
+            document.getElementById('cardServices').addEventListener('click', () => {
+                document.getElementById('servicesSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            document.getElementById('cardRating').addEventListener('click', () => openReviewsModal());
+            document.getElementById('closeReviewsModal').addEventListener('click', () => toggleModal('reviewsModal'));
+            document.getElementById('reviewsModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('reviewsModal')) toggleModal('reviewsModal');
+            });
+
+            function filterBookingsTo(status) {
+                const btn = document.querySelector(`#bookingTabs button[data-status="${status}"]`);
+                if (btn) btn.click();
+                document.getElementById('bookingsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // --- Booking tab filtering — re-fetches from the server by status ---
+            const tabButtons = document.querySelectorAll('#bookingTabs button');
             tabButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
-                    // Reset styling
                     tabButtons.forEach(btn => {
                         btn.classList.remove('bg-glamLightSage', 'shadow-sm');
                         btn.classList.add('bg-white/50');
                     });
-
-                    // Set active styling
-                    e.target.classList.remove('bg-white/50');
-                    e.target.classList.add('bg-glamLightSage', 'shadow-sm');
-
-                    const filter = e.target.textContent.trim().toLowerCase();
-
-                    // Filter cards
-                    bookingItems.forEach(item => {
-                        const badgeText = item.querySelector('span.rounded-full').textContent.toLowerCase();
-                        if (filter === 'all' || badgeText.includes(filter)) {
-                            item.style.display = 'flex';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+                    e.currentTarget.classList.remove('bg-white/50');
+                    e.currentTarget.classList.add('bg-glamLightSage', 'shadow-sm');
+                    activeBookingFilter = e.currentTarget.dataset.status;
+                    loadBookings();
                 });
             });
 
-            // --- 2. Modal Helper Functions ---
+            // --- Modal helpers ---
             const toggleModal = (modalId) => {
                 const modal = document.getElementById(modalId);
                 modal.classList.toggle('hidden');
                 modal.classList.toggle('flex');
             };
 
-            // --- 3. Add Slot Modal Events ---
+            // --- Add Slot Modal ---
             const slotModalId = 'addSlotModal';
             document.getElementById('openSlotModalBtn').addEventListener('click', () => toggleModal(slotModalId));
             document.getElementById('closeSlotModal').addEventListener('click', () => toggleModal(slotModalId));
             document.getElementById(slotModalId).addEventListener('click', (e) => {
                 if (e.target === document.getElementById(slotModalId)) toggleModal(slotModalId);
             });
+            document.getElementById('addSlotForm').addEventListener('submit', handleAddSlot);
 
-            // --- 4. Add Service Modal Events ---
+            // --- Add/Edit Service Modal ---
             const serviceModalId = 'addServiceModal';
-            document.getElementById('openServiceModalBtn').addEventListener('click', () => toggleModal(serviceModalId));
+            document.getElementById('openServiceModalBtn').addEventListener('click', () => {
+                resetServiceForm();
+                toggleModal(serviceModalId);
+            });
             document.getElementById('closeServiceModal').addEventListener('click', () => toggleModal(serviceModalId));
             document.getElementById(serviceModalId).addEventListener('click', (e) => {
                 if (e.target === document.getElementById(serviceModalId)) toggleModal(serviceModalId);
             });
-        });
-    </script>
+            document.getElementById('addServiceForm').addEventListener('submit', handleSaveService);
 
-    <!-- Glamtopia Chatbot Widget — reference integration.
-         data-provider-id left blank here; on a real logged-in provider's
-         dashboard, render this server-side with their actual provider_profiles._id
-         so they see their own FAQs alongside the general ones. -->
-    <script src="js/chatbot-widget.js" data-api-base="http://localhost:5000/api" data-provider-id=""></script>
+            // --- Event delegation for dynamically rendered cards ---
+            document.getElementById('bookingsListContainer').addEventListener('click', (e) => {
+                const confirmBtn = e.target.closest('[data-confirm]');
+                const completeBtn = e.target.closest('[data-complete]');
+                const cancelBtn = e.target.closest('[data-cancel]');
+                if (confirmBtn) handleBookingAction(confirmBtn.dataset.confirm, 'confirm');
+                else if (completeBtn) handleBookingAction(completeBtn.dataset.complete, 'complete');
+                else if (cancelBtn) handleBookingAction(cancelBtn.dataset.cancel, 'cancel');
+            });
+
+            document.getElementById('availabilitySlotsContainer').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-delete-slot]');
+                if (btn) handleDeleteSlot(btn.dataset.deleteSlot);
+            });
+
+            document.getElementById('servicesListContainer').addEventListener('click', (e) => {
+                const editBtn = e.target.closest('[data-edit-service]');
+                const archiveBtn = e.target.closest('[data-archive-service]');
+                if (editBtn) openEditService(editBtn.dataset.editService);
+                else if (archiveBtn) handleArchiveService(archiveBtn.dataset.archiveService);
+            });
+
+            initDashboard();
+        });
+
+        // Init: who's logged in, resolve to provider_profiles._id (Issue 3),
+        // then load every real data section.
+        async function initDashboard() {
+            try {
+                const meRes = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+                if (!meRes.ok) {
+                    showToast("You're not logged in. Redirecting to login…", 'error');
+                    setTimeout(() => window.location.href = '../login.html', 1200);
+                    return;
+                }
+                const me = await meRes.json();
+                if (me.user.role !== 'provider') {
+                    showToast("This dashboard is for providers only.", 'error');
+                    setTimeout(() => window.location.href = '../index.html', 1200);
+                    return;
+                }
+
+                const profileRes = await fetch(`${API_BASE}/providers/me`, { credentials: 'include' });
+                if (!profileRes.ok) {
+                    document.getElementById('providerName').textContent = me.user.name;
+                    showToast("No provider profile found yet — create one first.", 'error');
+                    return;
+                }
+                const profile = await profileRes.json();
+
+                currentProviderId = profile._id;
+                document.getElementById('providerName').textContent = profile.business_name || me.user.name;
+                document.getElementById('metricRating').textContent = (profile.average_rating || 0).toFixed(1);
+
+                loadBookings();
+                loadAvailability();
+                loadServices();
+                loadChatbotWidget(currentProviderId);
+            } catch (err) {
+                console.error('Dashboard init failed', err);
+                showToast(`Couldn't reach the server. Is it running on ${API_BASE}?`, 'error');
+            }
+        }
+
+        // Injected AFTER we know the real provider ID, so the widget's own
+        // FAQ lookups (data-provider-id) are correct from the very first
+        // load, instead of always starting blank (Issue 1).
+        function loadChatbotWidget(providerId) {
+            const script = document.createElement('script');
+            script.src = 'js/chatbot-widget.js';
+            script.dataset.apiBase = API_BASE;
+            script.dataset.providerId = providerId;
+            document.body.appendChild(script);
+        }
+
+        // --- Bookings (already had working endpoints — this just re-wires the UI) ---
+        async function loadBookings() {
+            const container = document.getElementById('bookingsListContainer');
+            if (!currentProviderId) return;
+            container.innerHTML = `<p class="text-xs text-glamOlive/60 italic">Loading bookings…</p>`;
+
+            try {
+                const url = new URL(`${API_BASE}/bookings/provider`);
+                if (activeBookingFilter && activeBookingFilter !== 'all') {
+                    url.searchParams.set('status', activeBookingFilter);
+                }
+                const res = await fetch(url, { credentials: 'include' });
+                if (!res.ok) throw new Error('Request failed');
+                const bookings = await res.json();
+
+                if (activeBookingFilter === 'all') updateBookingMetrics(bookings);
+
+                if (!bookings.length) {
+                    container.innerHTML = `<p class="text-xs text-glamOlive/60 italic">No bookings in this view yet.</p>`;
+                    return;
+                }
+                container.innerHTML = bookings.map(renderBookingCard).join('');
+            } catch (err) {
+                console.error('Failed to load bookings', err);
+                container.innerHTML = `<p class="text-xs text-red-600">Couldn't load bookings. Try refreshing.</p>`;
+            }
+        }
+
+        function updateBookingMetrics(bookings) {
+            document.getElementById('metricPending').textContent = bookings.filter(b => b.status === 'pending').length;
+            document.getElementById('metricConfirmed').textContent = bookings.filter(b => b.status === 'confirmed').length;
+        }
+
+        const STATUS_BADGE = {
+            pending: 'bg-glamPeach/25 text-glamOlive',
+            confirmed: 'bg-glamOlive/10 text-glamOlive',
+            completed: 'bg-glamSage/15 text-glamSage',
+            cancelled: 'bg-gray-100 text-gray-500',
+        };
+
+        function renderBookingCard(booking) {
+            const service = booking.service_id;
+            const customer = booking.customer_id;
+            const slot = booking.slot_id;
+            const slotLabel = slot
+                ? new Date(slot.start_time).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                : 'Slot unavailable';
+            const badgeClass = STATUS_BADGE[booking.status] || 'bg-gray-100 text-gray-700';
+
+            let actions = '';
+            if (booking.status === 'pending') {
+                actions = `
+                    <button data-confirm="${booking._id}" class="px-3 py-1.5 text-xs font-semibold bg-glamOlive text-glamCream rounded-lg hover:bg-glamSage transition-all shadow-sm">Confirm Booking</button>
+                    <button data-cancel="${booking._id}" class="px-3 py-1.5 text-xs font-semibold text-red-600 hover:underline">Decline</button>`;
+            } else if (booking.status === 'confirmed') {
+                actions = `
+                    <button data-complete="${booking._id}" class="px-3 py-1.5 text-xs font-semibold bg-glamLightSage text-glamOlive rounded-lg transition-all shadow-sm">Mark Completed</button>
+                    <button data-cancel="${booking._id}" class="px-3 py-1.5 text-xs font-semibold text-red-600 hover:underline">Cancel</button>`;
+            }
+
+            return `
+                <div class="bg-glamCream/60 border border-glamSage/30 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-all">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-glamOlive">${service ? service.name : 'Service'}</span>
+                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeClass} rounded-full">${booking.status}</span>
+                        </div>
+                        <p class="text-sm text-glamOlive/80">Customer: <span class="font-medium">${customer ? customer.name : 'Unknown'}</span></p>
+                        <p class="text-xs text-glamOlive/60">📅 Slot: ${slotLabel}</p>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">${actions}</div>
+                </div>`;
+        }
+
+        async function handleBookingAction(bookingId, action) {
+            if (action === 'cancel' && !confirm('Cancel this booking? This cannot be undone.')) return;
+            try {
+                const res = await fetch(`${API_BASE}/bookings/${bookingId}/${action}`, { method: 'PATCH', credentials: 'include' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(data.message || `Could not ${action} this booking.`, 'error');
+                    return;
+                }
+                showToast(data.message || 'Booking updated.', 'success');
+                loadBookings();
+                loadAvailability();
+            } catch (err) {
+                console.error(`Failed to ${action} booking`, err);
+                showToast('Could not reach the server.', 'error');
+            }
+        }
+
+        // --- Availability slots ---
+        async function loadAvailability() {
+            const container = document.getElementById('availabilitySlotsContainer');
+            if (!currentProviderId) return;
+            try {
+                const res = await fetch(`${API_BASE}/availability/${currentProviderId}`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Request failed');
+                const slots = await res.json();
+
+                if (!slots.length) {
+                    container.innerHTML = `<p class="col-span-full text-xs text-glamOlive/60 italic">No open slots yet — add one above.</p>`;
+                    return;
+                }
+                container.innerHTML = slots.map(renderSlotCard).join('');
+            } catch (err) {
+                console.error('Failed to load availability', err);
+                container.innerHTML = `<p class="col-span-full text-xs text-red-600">Couldn't load availability.</p>`;
+            }
+        }
+
+        function renderSlotCard(slot) {
+            const start = new Date(slot.start_time);
+            const dateLabel = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+            const timeLabel = start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+            return `
+                <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center relative group">
+                    <p class="text-xs font-bold text-glamOlive">${dateLabel}</p>
+                    <p class="text-xs text-glamOlive/70 my-1">${timeLabel}</p>
+                    <button data-delete-slot="${slot._id}" class="text-[10px] font-semibold text-red-600 hover:underline">Remove</button>
+                </div>`;
+        }
+
+        async function handleAddSlot(e) {
+            e.preventDefault();
+            const errorEl = document.getElementById('slotFormError');
+            errorEl.classList.add('hidden');
+
+            const date = document.getElementById('slotDate').value;
+            const time = document.getElementById('slotTime').value;
+            if (!date || !time) return;
+
+            const start_time = new Date(`${date}T${time}`).toISOString();
+
+            try {
+                const res = await fetch(`${API_BASE}/availability`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ start_time }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    errorEl.textContent = data.message || 'Could not add slot.';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                showToast('Slot added.', 'success');
+                document.getElementById('addSlotForm').reset();
+                document.getElementById('addSlotModal').classList.add('hidden');
+                document.getElementById('addSlotModal').classList.remove('flex');
+                loadAvailability();
+            } catch (err) {
+                console.error('Add slot failed', err);
+                errorEl.textContent = 'Could not reach the server.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function handleDeleteSlot(slotId) {
+            if (!confirm('Remove this open slot?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/availability/${slotId}`, { method: 'DELETE', credentials: 'include' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(data.message || 'Could not remove slot.', 'error');
+                    return;
+                }
+                showToast('Slot removed.', 'success');
+                loadAvailability();
+            } catch (err) {
+                console.error('Delete slot failed', err);
+                showToast('Could not reach the server.', 'error');
+            }
+        }
+
+        // --- Services CRUD (Issue 5) ---
+        let servicesCache = [];
+
+        async function loadServices() {
+            const container = document.getElementById('servicesListContainer');
+            if (!currentProviderId) return;
+            try {
+                const res = await fetch(`${API_BASE}/services/provider/${currentProviderId}`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Request failed');
+                servicesCache = await res.json();
+
+                document.getElementById('metricServices').textContent = servicesCache.length;
+
+                if (!servicesCache.length) {
+                    container.innerHTML = `<p class="text-xs text-glamOlive/60 italic">No services yet — add one to appear on your storefront.</p>`;
+                    return;
+                }
+                container.innerHTML = servicesCache.map(renderServiceCard).join('');
+            } catch (err) {
+                console.error('Failed to load services', err);
+                container.innerHTML = `<p class="text-xs text-red-600">Couldn't load services.</p>`;
+            }
+        }
+
+        function renderServiceCard(service) {
+            return `
+                <div class="p-3 bg-glamCream/50 rounded-xl border border-glamSage/20 flex justify-between items-center gap-2">
+                    <div class="min-w-0">
+                        <h4 class="text-sm font-bold text-glamOlive truncate">${service.name}</h4>
+                        <p class="text-xs text-glamOlive/70">${service.duration_minutes} min | PKR ${service.price.toLocaleString()}</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button data-edit-service="${service._id}" class="text-xs text-glamOlive font-semibold hover:underline">Edit</button>
+                        <button data-archive-service="${service._id}" class="text-xs text-red-600 font-semibold hover:underline">Delete</button>
+                    </div>
+                </div>`;
+        }
+
+        function resetServiceForm() {
+            document.getElementById('serviceId').value = '';
+            document.getElementById('serviceName').value = '';
+            document.getElementById('serviceDescription').value = '';
+            document.getElementById('servicePrice').value = '';
+            document.getElementById('serviceDuration').value = '60';
+            document.getElementById('serviceModalTitle').textContent = 'Add New Service';
+            document.getElementById('serviceSubmitBtn').textContent = 'Add Service';
+            document.getElementById('serviceFormError').classList.add('hidden');
+        }
+
+        function openEditService(serviceId) {
+            const service = servicesCache.find(s => s._id === serviceId);
+            if (!service) return;
+            document.getElementById('serviceId').value = service._id;
+            document.getElementById('serviceName').value = service.name;
+            document.getElementById('serviceDescription').value = service.description;
+            document.getElementById('servicePrice').value = service.price;
+            document.getElementById('serviceDuration').value = service.duration_minutes;
+            document.getElementById('serviceModalTitle').textContent = 'Edit Service';
+            document.getElementById('serviceSubmitBtn').textContent = 'Save Changes';
+
+            const modal = document.getElementById('addServiceModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        async function handleSaveService(e) {
+            e.preventDefault();
+            const errorEl = document.getElementById('serviceFormError');
+            errorEl.classList.add('hidden');
+
+            const id = document.getElementById('serviceId').value;
+            const payload = {
+                name: document.getElementById('serviceName').value.trim(),
+                description: document.getElementById('serviceDescription').value.trim(),
+                price: Number(document.getElementById('servicePrice').value),
+                duration_minutes: Number(document.getElementById('serviceDuration').value),
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/services${id ? '/' + id : ''}`, {
+                    method: id ? 'PATCH' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    errorEl.textContent = data.message || 'Could not save service.';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+                showToast(id ? 'Service updated.' : 'Service added.', 'success');
+                document.getElementById('addServiceModal').classList.add('hidden');
+                document.getElementById('addServiceModal').classList.remove('flex');
+                loadServices();
+            } catch (err) {
+                console.error('Save service failed', err);
+                errorEl.textContent = 'Could not reach the server.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // --- Reviews modal (Issue 6: rating card shows real data) ---
+        async function openReviewsModal() {
+            const modal = document.getElementById('reviewsModal');
+            const content = document.getElementById('reviewsModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            content.innerHTML = `<p class="text-xs text-glamOlive/60 italic">Loading reviews…</p>`;
+
+            if (!currentProviderId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/reviews/provider/${currentProviderId}`);
+                if (!res.ok) throw new Error('Request failed');
+                const data = await res.json();
+                const reviews = data.reviews || data;
+
+                if (!reviews || !reviews.length) {
+                    content.innerHTML = `<p class="text-xs text-glamOlive/60 italic">No reviews yet.</p>`;
+                    return;
+                }
+
+                content.innerHTML = reviews.map(r => {
+                    const customerName = r.booking_id && r.booking_id.customer_id ? r.booking_id.customer_id.name : 'Customer';
+                    return `
+                    <div class="p-3 bg-glamCream/50 rounded-xl border border-glamSage/20">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-glamOlive">${customerName}</span>
+                            <span class="text-glamPeach text-sm">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                        </div>
+                        <p class="text-xs text-glamOlive/70">${r.comment || ''}</p>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load reviews', err);
+                content.innerHTML = `<p class="text-xs text-red-600">Couldn't load reviews.</p>`;
+            }
+        }
+
+        // Services are archived (is_active: false), never hard-deleted — see
+        // server/controllers/serviceController.js — so past bookings that
+        // reference this service stay intact.
+        async function handleArchiveService(serviceId) {
+            if (!confirm('Remove this service from your storefront?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/services/${serviceId}`, { method: 'DELETE', credentials: 'include' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    showToast(data.message || 'Could not remove service.', 'error');
+                    return;
+                }
+                showToast('Service removed.', 'success');
+                loadServices();
+            } catch (err) {
+                console.error('Archive service failed', err);
+                showToast('Could not reach the server.', 'error');
+            }
+        }
+    </script>
 </body>
 
 </html>

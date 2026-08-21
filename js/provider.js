@@ -75,7 +75,7 @@ function renderReviewsSection(data) {
     <h2 class="font-display text-2xl text-glam-ink mb-4">
       Reviews
       <span class="text-base font-normal text-glam-ink/60">
-        · ★ ${averageRating.toFixed(1)} (${totalReviews} review${totalReviews === 1 ? "" : "s"})
+        · <span class="glam-accent">★</span> ${averageRating.toFixed(1)} (${totalReviews} review${totalReviews === 1 ? "" : "s"})
       </span>
     </h2>
     <div class="grid gap-4">
@@ -91,7 +91,7 @@ function renderReviewCard(r) {
     <div class="glam-card p-5">
       <div class="flex items-center justify-between">
         <p class="font-semibold">${customerName}</p>
-        <p class="text-sm text-glam-ink/60">★ ${r.rating}/5 · ${date}</p>
+        <p class="text-sm text-glam-ink/60"><span class="glam-accent">★</span> ${r.rating}/5 · ${date}</p>
       </div>
       ${r.comment ? `<p class="text-glam-ink/70 mt-2">${r.comment}</p>` : ""}
     </div>
@@ -106,15 +106,14 @@ function renderProfile(p) {
           <p class="glam-eyebrow mb-2">${capitalize(p.category)} · ${p.location}</p>
           <h1 class="font-display text-3xl md:text-4xl text-glam-ink">${p.business_name}</h1>
           <p class="text-sm font-semibold mt-2">
-            ★ ${p.average_rating.toFixed(1)}
+            <span class="glam-accent">★</span> ${p.average_rating.toFixed(1)}
             <span class="text-glam-ink/50 font-normal">(${p.review_count} reviews)</span>
           </p>
         </div>
-        ${
-          p.fully_booked
-            ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
-            : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
-        }
+        ${p.fully_booked
+      ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
+      : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
+    }
       </div>
       <p class="text-glam-ink/70 mt-6 max-w-2xl">${p.bio}</p>
       <p class="text-sm text-glam-ink/60 mt-3">Contact: ${p.contact_info}</p>
@@ -168,13 +167,13 @@ function renderAvailability(p) {
   return `
     <div class="flex flex-wrap gap-3">
       ${mockSlots
-        .map(
-          (slot) => `
+      .map(
+        (slot) => `
         <button type="button" class="book-btn glam-chip px-4 py-2 rounded-full text-sm" data-service="${slot}">
           ${slot}
         </button>`
-        )
-        .join("")}
+      )
+      .join("")}
     </div>
     <p class="text-xs text-glam-ink/50 mt-3">Placeholder slots — wired to <code>availability_slots</code> in the real build.</p>
   `;
