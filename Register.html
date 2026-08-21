@@ -49,7 +49,6 @@
       </button>
     </div>
 
-    <!-- Static skeleton: no auth wired yet, form does not submit anywhere -->
     <form id="register-form" class="space-y-4" novalidate>
       <div>
         <label for="name" class="text-sm font-semibold block mb-1">Full name</label>
@@ -104,22 +103,87 @@
       phoneInput.required = isCustomer; // required for customers per FR-11, optional at signup for providers
     });
   });
+</script>
 
-  // Skeleton-only validation. Real submit handler wires to /api/auth/register.
-  document.getElementById("register-form").addEventListener("submit", (e) => {
+<script>
+  const API_BASE = "http://localhost:5000/api"; // change this to your deployed backend URL later
+
+  document.getElementById("register-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById("form-error");
+    errorEl.classList.add("hidden");
+
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
+    const phone = document.getElementById("phone").value.trim();
 
-    if (!name || !email || !password) {
-      errorEl.textContent = "Fill in your name, email, and password to continue.";
+    // Which role is selected — read from the toggle buttons above
+    const selectedRoleBtn = document.querySelector('.role-btn[aria-pressed="true"]');
+    const role = selectedRoleBtn ? selectedRoleBtn.dataset.role : "customer";
+
+    function showError(message) {
+      errorEl.textContent = message;
       errorEl.classList.remove("hidden");
+    }
+
+    // --- Client-side validation (fast feedback, not the real security layer) ---
+    if (!name || !email || !password) {
+      showError("Fill in your name, email, and password to continue.");
       return;
     }
-    errorEl.classList.remove("hidden");
-    errorEl.textContent = "Auth isn't wired up yet — this is a static skeleton.";
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      showError("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      showError("Password must be at least 6 characters.");
+      return;
+    }
+
+    const phonePattern = /^[0-9+\-\s()]{7,20}$/;
+    if (role === "customer" && !phone) {
+      showError("Phone number is required for customer accounts.");
+      return;
+    }
+    if (phone && !phonePattern.test(phone)) {
+      showError("Phone number can only contain digits, spaces, +, -, and parentheses.");
+      return;
+    }
+
+    // --- Send to the real backend ---
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Creating account...";
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // required so the session cookie gets set
+        body: JSON.stringify({ name, email, password, role, phone_number: phone || undefined }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Show whatever the backend actually rejected it for (e.g. "Email already registered")
+        showError(data.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      // Success — session cookie is now set, redirect based on role
+      window.location.href = role === "provider" ? "provider-dashboard.html" : "index.html";
+    } catch (err) {
+      console.error(err);
+      showError("Could not reach the server. Is it running?");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create account";
+    }
   });
 </script>
 <script src="js/nav.js"></script>
