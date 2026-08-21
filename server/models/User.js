@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: null,
+      match: [/^[0-9+\-\s()]{7,20}$/, "Phone number can only contain digits, spaces, +, -, and ()"],
     },
     cancellation_warning_count: {
       type: Number,
