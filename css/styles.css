@@ -1,35 +1,59 @@
 /* ==========================================================================
-   Glamtopia — design tokens (v2: cooler green palette)
-   Palette (sampled from team swatch):
-     --glam-blush  #F6F0D8  light beige — page background
-     --glam-nav    #C6DA9F  light mint, "a bit darker" than bg — navbars,
-                            footer, and future sidebars
-     --glam-rose   #9DAD86  sage — primary button base
-     --glam-gold   #89986D  dark olive, the deepest tone — button hover,
-                            hairline accent
-     --glam-ink    #33402A  dark moss-green — headings, body text
-     --glam-warn   #B0623F  muted terracotta — the one non-green accent,
-                            reserved for "fully booked" / form errors so
-                            they never get lost in a page full of greens
-     --glam-cloud  translucent white — card / chip surface (glass effect)
+   Glamtopia — design tokens (v3: Deep Navy / Charcoal / Terracotta / Peach)
+
+   Palette:
+     --glam-navy    #0F3040  Deep Navy      — navbar, primary buttons,
+                                              important headings, strong UI
+     --glam-charcoal#464858  Charcoal Slate — secondary text, borders,
+                                              dropdowns/filters
+     --glam-terracotta #A56F63 Muted Terracotta — secondary buttons, badges,
+                                              selected states (used sparingly)
+     --glam-peach   #D99B7F  Soft Dusty Peach — ratings, icons, hover/active
+                                              states, small accents (never a
+                                              background fill)
+     --glam-white   #FFFFFF  Primary background — cards, page bg, forms
+
    Type:
      Display — 'Fraunces' (headings)
      Body/UI — 'Manrope' (everything else)
-   Signature: a 2px olive hairline across the top of every card, plus a
-   soft frosted-glass surface with a real drop shadow — like a card resting
-   just above the page.
+
+   Old token NAMES (glam-ink, glam-rose, glam-gold, glam-blush, glam-sage,
+   glam-cloud, glam-nav, glam-warn) are kept as-is on purpose — every page's
+   Tailwind config and every existing class in the markup (text-glam-ink,
+   bg-glam-nav, etc.) still works unchanged. Only what each token POINTS TO
+   changed. New: --glam-peach, used explicitly where the brief calls for it.
+
+   Signature: clean white cards with a subtle border and soft shadow (the
+   old frosted-glass blur + olive hairline is gone — replaced with a
+   restrained peach top edge, used sparingly, not on every card).
    ========================================================================== */
 
 :root {
-  --glam-blush: #f6f0d8;
-  --glam-nav: #c6da9f;
-  --glam-rose: #9dad86;
-  --glam-gold: #89986d;
-  --glam-ink: #33402a;
-  --glam-sage: #6f8f52;
-  --glam-warn: #b0623f;
-  --glam-cloud: rgba(255, 253, 244, 0.6);
-  --glam-cloud-solid: #fffdf4;
+  --glam-navy: #0f3040;
+  --glam-charcoal: #464858;
+  --glam-terracotta: #a56f63;
+  --glam-peach: #d99b7f;
+  --glam-navy-deep: #0a222e;
+  /* primary button hover — a darker navy, not a new hue */
+
+  /* Old token names, remapped */
+  --glam-blush: #ffffff;
+  /* page background */
+  --glam-nav: #0f3040;
+  /* navbar / footer surface */
+  --glam-rose: #0f3040;
+  /* primary button base */
+  --glam-gold: #0a222e;
+  /* primary button hover */
+  --glam-ink: #464858;
+  /* body text */
+  --glam-sage: #464858;
+  /* secondary text / borders */
+  --glam-warn: #a56f63;
+  /* "fully booked" / secondary emphasis */
+  --glam-cloud: #ffffff;
+  /* card / chip surface */
+  --glam-cloud-solid: #ffffff;
 }
 
 * {
@@ -42,9 +66,6 @@ html {
 
 body {
   background-color: var(--glam-blush);
-  background-image: radial-gradient(circle at 15% 0%, rgba(198, 218, 159, 0.35), transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(157, 173, 134, 0.25), transparent 40%);
-  background-attachment: fixed;
   color: var(--glam-ink);
   font-family: "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -54,93 +75,166 @@ body {
   font-family: "Fraunces", serif;
 }
 
-/* ---------- Cards: frosted glass, real shadow, olive hairline ---------- */
+/* Headings get the strongest, most important dark tone (navy) rather than
+   the general body-text charcoal, per the brand's "primary dark = navy for
+   important headings" rule. Applied via .font-display, which is already
+   used on every headline across the site. !important because Tailwind's
+   CDN script injects its utility <style> at runtime and can land after
+   this stylesheet in the DOM — without it, a stray text-glam-ink on the
+   same element could win the cascade unpredictably. */
+.font-display {
+  color: var(--glam-navy) !important;
+}
+
+/* ---------- Cards: clean white surface, subtle border + shadow ---------- */
 .glam-card {
   background: var(--glam-cloud);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-radius: 14px;
-  border-top: 2px solid var(--glam-gold);
-  box-shadow: 0 4px 14px rgba(51, 64, 42, 0.1), 0 1px 3px rgba(51, 64, 42, 0.08);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid rgba(70, 72, 88, 0.12);
+  border-top: 2px solid var(--glam-peach);
+  box-shadow: 0 2px 8px rgba(15, 48, 64, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .glam-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(51, 64, 42, 0.16), 0 4px 10px rgba(51, 64, 42, 0.1);
+  box-shadow: 0 14px 28px rgba(15, 48, 64, 0.12), 0 4px 10px rgba(15, 48, 64, 0.06);
+  border-color: rgba(70, 72, 88, 0.18);
 }
 
-/* Eyebrow labels — small caps, letter-spaced, like handwritten tags in an
-   appointment book. Used instead of generic numbered badges. */
+/* Eyebrow labels — small caps, letter-spaced */
 .glam-eyebrow {
   font-family: "Manrope", sans-serif;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--glam-gold);
+  color: var(--glam-terracotta);
 }
 
-/* ---------- Buttons: sage base, olive (darkest) on hover ---------- */
+/* ---------- Buttons ---------- */
+/* Primary: navy, the platform's strongest CTA color */
 .glam-btn-primary {
   background-color: var(--glam-rose);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
+  box-shadow: 0 2px 8px rgba(15, 48, 64, 0.18);
   transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .glam-btn-primary:hover {
   background-color: var(--glam-gold);
-  box-shadow: 0 6px 16px rgba(51, 64, 42, 0.24);
+  box-shadow: 0 6px 16px rgba(15, 48, 64, 0.24);
 }
 
 .glam-btn-primary:active {
   transform: translateY(1px);
 }
 
+/* Secondary: terracotta outline, per "secondary buttons = Muted Terracotta" */
 .glam-btn-outline {
-  border: 1.5px solid var(--glam-ink);
-  color: var(--glam-ink);
-  background: rgba(255, 253, 244, 0.4);
+  border: 1.5px solid var(--glam-terracotta);
+  color: var(--glam-terracotta);
+  background: #fff;
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .glam-btn-outline:hover {
-  background-color: var(--glam-ink);
+  background-color: var(--glam-terracotta);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(51, 64, 42, 0.2);
+  box-shadow: 0 4px 12px rgba(165, 111, 99, 0.25);
 }
 
+/* Filter/category chips — peach marks the active/selected one, as the
+   brief specifies ("active indicators, selected UI elements" = peach) */
 .glam-chip {
-  border: 1.5px solid rgba(51, 64, 42, 0.18);
+  border: 1.5px solid rgba(70, 72, 88, 0.2);
   color: var(--glam-ink);
-  background: var(--glam-cloud);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: #fff;
   transition: all 0.15s ease;
 }
 
 .glam-chip:hover {
-  border-color: var(--glam-rose);
+  border-color: var(--glam-peach);
+  color: var(--glam-navy);
 }
 
 .glam-chip[aria-pressed="true"] {
-  background-color: var(--glam-rose);
-  border-color: var(--glam-rose);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(51, 64, 42, 0.18);
+  background-color: var(--glam-peach);
+  border-color: var(--glam-peach);
+  color: var(--glam-navy);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(217, 155, 127, 0.35);
 }
 
+/* Status text — no green/red in the brand palette, so "available" reads
+   confident in navy and "fully booked" stays in the warm terracotta tone
+   (close to its old role, so this one barely changed). */
 .glam-status-available {
-  color: var(--glam-sage);
+  color: var(--glam-navy);
 }
 
 .glam-status-full {
   color: var(--glam-warn);
 }
 
-/* Nav / footer / (future) sidebar surface uses the bg-glam-nav Tailwind
-   utility directly (see tailwind.config in each page) plus shadow-sm. */
+/* Small accent utility for rating stars / icons / active dots — the ONE
+   place peach appears as a small foreground mark, never as a background. */
+.glam-accent {
+  color: var(--glam-peach);
+}
+
+/* ---------- Navbar & footer: dark navy surface needs light content ---------- */
+/* bg-glam-nav is only ever used on <header> and <footer> in this codebase,
+   so scoping the override to those two elements (and their descendants) is
+   safe and won't leak into body copy elsewhere. !important is used
+   deliberately here: Tailwind's CDN-injected utility classes (e.g.
+   text-glam-ink/60) have normal class specificity and would otherwise win
+   over a plain element selector. */
+header,
+footer,
+header *,
+footer * {
+  color: #ffffff !important;
+}
+
+header a:hover,
+footer a:hover {
+  color: var(--glam-peach) !important;
+}
+
+/* The "Sign up" primary button sitting ON the navy navbar needs to stand
+   out from that same navy — peach does the job and doubles as the
+   brand's signature warm accent right where people first see it. */
+header .glam-btn-primary {
+  background-color: var(--glam-peach) !important;
+  color: var(--glam-navy) !important;
+  box-shadow: none;
+}
+
+header .glam-btn-primary:hover {
+  background-color: var(--glam-terracotta) !important;
+  color: #fff !important;
+}
+
+/* The "Log in" outline button on the navbar: white outline instead of the
+   terracotta one used elsewhere, since terracotta-on-navy reads muddy */
+header .glam-btn-outline {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+header .glam-btn-outline:hover {
+  background-color: #fff;
+  color: var(--glam-navy) !important;
+}
+
+#nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Nav / footer surface uses the bg-glam-nav Tailwind utility directly (see
+   tailwind.config in each page) plus shadow-sm. */
 
 /* Mobile nav menu */
 #nav-menu {
@@ -158,12 +252,13 @@ body {
   opacity: 1;
 }
 
-/* Visible keyboard focus everywhere */
+/* Visible keyboard focus everywhere — peach ring reads as a warm,
+   distinctive focus indicator without competing with navy CTAs */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--glam-gold);
+  outline: 2px solid var(--glam-peach);
   outline-offset: 2px;
 }
 

@@ -22,7 +22,7 @@ function renderCard(p) {
       <p class="font-display text-xl mt-2">${p.business_name}</p>
       <p class="text-sm text-glam-ink/60 mt-1">${p.location}</p>
       <div class="flex items-center justify-between mt-4">
-        <span class="text-sm font-semibold">★ ${p.average_rating.toFixed(1)} <span class="text-glam-ink/50 font-normal">(${p.review_count})</span></span>
+        <span class="text-sm font-semibold"><span class="glam-accent">★</span> ${p.average_rating.toFixed(1)} <span class="text-glam-ink/50 font-normal">(${p.review_count})</span></span>
         ${statusLabel}
       </div>
     </a>

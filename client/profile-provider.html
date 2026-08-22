@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   
+
     <title>Provider Profile</title>
 
     <style>
@@ -115,58 +115,50 @@
 
     <div class="container">
 
-        <h1>Edit Provider Profile</h1>
+        <h1 id="pageTitle">Set Up Your Provider Profile</h1>
+        <p id="pageSubtitle"
+            style="text-align:center; color:#666; margin-top:-15px; margin-bottom:10px; font-size:14px;">
+            This is your public business profile — customers see this when browsing.
+        </p>
 
         <form id="profileForm">
 
             <label for="name">Name</label>
-            <input
-                type="text"
-                id="name"
-                placeholder="Enter your name"
-                required
-            >
+            <input type="text" id="name" readonly style="background:#f0f0f0; color:#666;">
 
             <label for="email">Email</label>
-            <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                required
-            >
+            <input type="email" id="email" readonly style="background:#f0f0f0; color:#666;">
+            <p style="font-size:12px; color:#999; margin-top:-10px;">
+                Name and email are tied to your account and shown for reference — this form saves your business profile.
+            </p>
+
+            <label for="business_name">Business Name</label>
+            <input type="text" id="business_name" placeholder="e.g. Amina's Beauty Studio" required>
+
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g. Hayatabad, Peshawar" required>
+
+            <label for="category">Category</label>
+            <select id="category" required>
+                <option value="">Select a category</option>
+                <option value="hair">Hair</option>
+                <option value="makeup">Makeup</option>
+                <option value="nails">Nails</option>
+                <option value="skincare">Skincare</option>
+            </select>
+
+            <label for="contact_info">Contact Info (phone / WhatsApp)</label>
+            <input type="text" id="contact_info" placeholder="e.g. 0300-1234567" required>
 
             <label for="bio">Bio</label>
-            <textarea
-                id="bio"
-                placeholder="Tell customers about yourself..."
-            ></textarea>
+            <textarea id="bio" placeholder="Tell customers about yourself..."></textarea>
 
+            <p style="font-size:13px; color:#888; margin-top:15px;">
+                Services and availability are managed separately from your
+                <a href="provider-dashboard.html">provider dashboard</a>, once your profile is set up.
+            </p>
 
-            <label>Services & Pricing</label>
-
-            <div id="servicesContainer"></div>
-
-            <button
-                type="button"
-                class="add-btn"
-                id="addServiceBtn"
-            >
-                + Add Service
-            </button>
-
-
-            <label for="availability">Availability</label>
-
-            <textarea
-                id="availability"
-                placeholder="Example: Monday to Friday, 4 PM - 8 PM"
-            ></textarea>
-
-
-            <button
-                type="submit"
-                class="save-btn"
-            >
+            <button type="submit" class="save-btn" id="saveBtn">
                 Save Profile
             </button>
 
@@ -179,4 +171,5 @@
     <script src="profile-provider.js"></script>
 
 </body>
+
 </html>

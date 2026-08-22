@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — Glamtopia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // NOTE: this config was missing entirely before — bg-glamCream,
+    // text-glamOlive, etc. below were resolving to nothing, so this page
+    // was rendering completely unstyled. Same token set as
+    // client/provider-dashboard.html, so the two dashboards stay visually
+    // consistent.
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            glamCream: '#FFFFFF',
+            glamLightSage: '#D99B7F',
+            glamSage: '#464858',
+            glamOlive: '#0F3040',
+            glamPeach: '#D99B7F',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* .glass-card-opaque was used below but never defined anywhere this
+       page could see it — also fixed here, matching provider-dashboard.html */
+    .glass-card-opaque {
+      background: #FFFFFF;
+      border: 1px solid rgba(70, 72, 88, 0.12);
+      box-shadow: 0 2px 10px rgba(15, 48, 64, 0.06);
+    }
+  </style>
+</head>
+
+<body class="bg-glamCream text-glamOlive font-sans min-h-screen">
+
+  <div id="authGate" class="min-h-screen flex items-center justify-center px-6">
+    <p class="text-sm text-glamOlive/60">Checking your session…</p>
+  </div>
+
+  <div id="dashboard" class="hidden max-w-5xl mx-auto px-6 py-10">
+    <header class="flex justify-between items-center mb-10">
+      <div>
+        <p class="text-sm text-glamOlive/60">Welcome back,</p>
+        <h1 id="customerName" class="text-2xl font-bold" style="font-family:'Fraunces',serif;">—</h1>
+      </div>
+      <button id="logoutBtn"
+        class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-xl border border-glamSage/40 hover:bg-glamSage/10 transition-all">
+        Log out
+      </button>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <a href="browse.html"
+        class="glass-card-opaque rounded-2xl p-5 border border-glamSage/20 hover:border-glamSage/50 transition-all">
+        <p class="text-sm font-bold text-glamOlive">Browse Providers</p>
+        <p class="text-xs text-glamOlive/60 mt-1">Find a service to book</p>
+      </a>
+      <a href="client/profile-customer.html"
+        class="glass-card-opaque rounded-2xl p-5 border border-glamSage/20 hover:border-glamSage/50 transition-all">
+        <p class="text-sm font-bold text-glamOlive">Profile Settings</p>
+        <p class="text-xs text-glamOlive/60 mt-1">Update your details</p>
+      </a>
+      <div class="glass-card-opaque rounded-2xl p-5 border border-glamSage/20">
+        <p class="text-sm font-bold text-glamOlive">Upcoming</p>
+        <p id="upcomingCount" class="text-xs text-glamOlive/60 mt-1">—</p>
+      </div>
+    </div>
+
+    <div class="glass-card-opaque rounded-2xl shadow-xl p-6 border border-glamSage/20">
+      <h2 class="text-lg font-bold text-glamOlive mb-4">My Bookings</h2>
+      <div id="bookingsContainer" class="space-y-3">
+        <p class="text-xs text-glamOlive/60 italic">Loading your bookings…</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:5000/api";
+
+    async function init() {
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, { credentials: "include" });
+        if (!res.ok) {
+          window.location.href = "login.html";
+          return;
+        }
+        const data = await res.json();
+
+        if (data.user.role !== "customer") {
+          // A provider landing here by mistake — send them to their own dashboard instead
+          window.location.href = "client/provider-dashboard.html";
+          return;
+        }
+
+        document.getElementById("customerName").textContent = data.user.name;
+        document.getElementById("authGate").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+
+        loadBookings();
+      } catch (err) {
+        console.error("Session check failed:", err);
+        window.location.href = "login.html";
+      }
+    }
+
+    async function loadBookings() {
+      const container = document.getElementById("bookingsContainer");
+      try {
+        const res = await fetch(`${API_BASE}/bookings/mine`, { credentials: "include" });
+        if (!res.ok) throw new Error("Request failed");
+        const bookings = await res.json();
+
+        const upcoming = bookings.filter(b => ["pending", "confirmed"].includes(b.status));
+        document.getElementById("upcomingCount").textContent =
+          upcoming.length === 1 ? "1 booking" : `${upcoming.length} bookings`;
+
+        if (!bookings.length) {
+          container.innerHTML = `<p class="text-xs text-glamOlive/60 italic">No bookings yet — browse providers to make your first one.</p>`;
+          return;
+        }
+
+        container.innerHTML = bookings.map(b => `
+          <div class="flex justify-between items-center p-3 bg-glamLightSage/20 border border-glamSage/30 rounded-xl">
+            <div>
+              <p class="text-sm font-bold text-glamOlive">${b.service_id?.name || "Service"}</p>
+              <p class="text-xs text-glamOlive/60">${b.provider_id?.business_name || "Provider"} · ${b.slot_id ? new Date(b.slot_id.start_time).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""
+          }</p>
+            </div>
+            <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-glamSage/20">${b.status}</span>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Failed to load bookings:", err);
+        container.innerHTML = `<p class="text-xs text-red-600">Couldn't load your bookings. Try refreshing.</p>`;
+      }
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });
+      window.location.href = "index.html";
+    });
+
+    init();
+  </script>
+  <script src="js/nav.js"></script>
+</body>
+
+</html>

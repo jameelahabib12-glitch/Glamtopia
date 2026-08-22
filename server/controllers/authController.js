@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-
 // POST /api/auth/register
 async function register(req, res) {
   try {
@@ -37,10 +36,8 @@ async function register(req, res) {
     if (existing) {
       return res.status(409).json({ message: "Email already registered" });
     }
-
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const user = await User.create({
       name,
       email,
@@ -51,7 +48,6 @@ async function register(req, res) {
 
     req.session.userId = user._id;
     req.session.role = user.role;
-
     return res.status(201).json({
       message: "Registered successfully",
       user: { id: user._id, name: user.name, email: user.email, role: user.role, phone_number: user.phone_number },
@@ -65,7 +61,6 @@ async function register(req, res) {
     return res.status(500).json({ message: "Server error during registration" });
   }
 }
-
 // POST /api/auth/login
 async function login(req, res) {
   try {
@@ -96,10 +91,8 @@ async function login(req, res) {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
     req.session.userId = user._id;
     req.session.role = user.role;
-
     return res.status(200).json({
       message: "Logged in successfully",
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
@@ -109,7 +102,6 @@ async function login(req, res) {
     return res.status(500).json({ message: "Server error during login" });
   }
 }
-
 // POST /api/auth/logout
 async function logout(req, res) {
   req.session.destroy((err) => {
