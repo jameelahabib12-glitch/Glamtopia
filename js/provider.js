@@ -1,42 +1,153 @@
 /**
- * Renders a single provider profile from mock data.
- * Booking buttons don't create real bookings yet — this is the guest-facing
- * browse skeleton only. Per SRS FR-13, guests are only pushed to
- * login/register at the point of booking, never before.
+ * Renders a single provider profile from REAL backend data.
+ *
+ * Previously this page ran entirely on MockAPI, and "Book" always redirected
+ * to login.html even for an already-logged-in customer — the login page had
+ * no idea a session already existed, so it just showed the login form again.
+ * Now: the id in the URL is a real provider_profiles._id, and "Book" links
+ * straight to booking-flow.html?providerId=...&serviceId=..., which already
+ * does its own auth check (GET /api/auth/me) and only sends GUESTS to
+ * login — an already-logged-in customer goes straight to picking a slot.
  */
 
-// Backend base URL — change if the API runs somewhere other than localhost:5000
-const REVIEWS_API_BASE = "http://localhost:5000";
+const API_BASE = "http://localhost:5000/api";
 
 (async function initProvider() {
   const root = document.getElementById("profile-root");
   const id = new URLSearchParams(window.location.search).get("id");
-  const provider = id ? await MockAPI.getProviderById(id) : null;
 
-  if (!provider) {
-    root.innerHTML = `
-      <div class="glam-card p-10 text-center">
-        <p class="font-display text-2xl mb-2">Provider not found</p>
-        <p class="text-glam-ink/60 mb-6">This profile may have been removed or the link is incorrect.</p>
-        <a href="browse.html" class="glam-btn-primary inline-block font-semibold px-6 py-3 rounded-full">Browse providers</a>
-      </div>
-    `;
+  if (!id) {
+    root.innerHTML = notFoundBlock();
     return;
   }
 
-  document.title = `${provider.business_name} — Glamtopia`;
-  root.innerHTML = renderProfile(provider);
-  bindBookingButtons();
+  try {
+    const res = await fetch(`${API_BASE}/providers/${id}`);
+    if (!res.ok) {
+      root.innerHTML = notFoundBlock();
+      return;
+    }
+    const provider = await res.json();
 
-  // NOTE (coordinate with Alishba): this page is still driven by MockAPI, so
-  // `id` here is a mock id, not a real Mongo ObjectId. Once real provider
-  // data replaces the mock data, this same `id` needs to be the provider's
-  // real User _id for the reviews endpoint below to return anything.
-  await loadAndRenderReviews(id);
+    document.title = `${provider.business_name} — Glamtopia`;
+    root.innerHTML = renderProfileShell(provider);
+
+    // Services and availability load independently so one failing doesn't
+    // block the other — and the page shows real content as soon as each
+    // piece arrives instead of waiting on everything at once.
+    loadAndRenderServices(provider);
+    loadAndRenderAvailability(id);
+    loadAndRenderReviews(id);
+  } catch (err) {
+    console.error("Failed to load provider", err);
+    root.innerHTML = `
+      <div class="glam-card p-10 text-center">
+        <p class="font-display text-2xl mb-2">Couldn't load this page</p>
+        <p class="text-glam-ink/60">Is the backend running on ${API_BASE}?</p>
+      </div>`;
+  }
 })();
 
-// Fetches real review data from the backend (Reviews Task 3/4) and injects
-// a "Reviews" section into the page, right after the Availability section.
+function notFoundBlock() {
+  return `
+    <div class="glam-card p-10 text-center">
+      <p class="font-display text-2xl mb-2">Provider not found</p>
+      <p class="text-glam-ink/60 mb-6">This profile may have been removed or the link is incorrect.</p>
+      <a href="browse.html" class="glam-btn-primary inline-block font-semibold px-6 py-3 rounded-full">Browse providers</a>
+    </div>
+  `;
+}
+
+function renderProfileShell(p) {
+  return `
+    <section class="glam-card p-8 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <p class="glam-eyebrow mb-2">${capitalize(p.category)} · ${p.location}</p>
+          <h1 class="font-display text-3xl md:text-4xl text-glam-ink">${p.business_name}</h1>
+          <p class="text-sm font-semibold mt-2">
+            <span class="glam-accent">★</span> ${(p.average_rating || 0).toFixed(1)}
+            <span class="text-glam-ink/50 font-normal">(${p.review_count || 0} reviews)</span>
+          </p>
+        </div>
+        <div id="availability-badge"></div>
+      </div>
+      <p class="text-glam-ink/70 mt-6 max-w-2xl">${p.bio || ""}</p>
+      <p class="text-sm text-glam-ink/60 mt-3">Contact: ${p.contact_info}</p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-2xl text-glam-ink mb-4">Services</h2>
+      <div id="services-grid" class="grid sm:grid-cols-2 gap-4">
+        <p class="text-sm text-glam-ink/60 italic">Loading services…</p>
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="font-display text-2xl text-glam-ink mb-4">Availability</h2>
+      <div id="availability-summary" class="glam-card p-6 text-glam-ink/70 text-sm">Loading availability…</div>
+    </section>
+  `;
+}
+
+async function loadAndRenderServices(provider) {
+  const grid = document.getElementById("services-grid");
+  try {
+    const res = await fetch(`${API_BASE}/services/provider/${provider._id}`);
+    if (!res.ok) throw new Error("Request failed");
+    const services = await res.json();
+
+    if (!services.length) {
+      grid.innerHTML = `<p class="text-sm text-glam-ink/60 italic">No services listed yet.</p>`;
+      return;
+    }
+
+    grid.innerHTML = services.map((s) => renderService(s, provider)).join("");
+  } catch (err) {
+    console.error("Failed to load services", err);
+    grid.innerHTML = `<p class="text-sm text-red-600">Couldn't load services.</p>`;
+  }
+}
+
+function renderService(s, provider) {
+  const bookUrl = `booking-flow.html?providerId=${provider._id}&serviceId=${s._id}`;
+  return `
+    <div class="glam-card p-5 flex items-start justify-between gap-4">
+      <div>
+        <p class="font-display text-lg">${s.name}</p>
+        <p class="text-sm text-glam-ink/60 mt-1">${s.description || ""}</p>
+        <p class="text-xs text-glam-ink/50 mt-2">${s.duration_minutes} min</p>
+      </div>
+      <div class="text-right shrink-0">
+        <p class="font-semibold mb-2">PKR ${s.price.toLocaleString()}</p>
+        <a href="${bookUrl}" class="glam-btn-primary inline-block text-xs font-semibold px-4 py-2 rounded-full">Book</a>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAndRenderAvailability(providerId) {
+  const badge = document.getElementById("availability-badge");
+  const summary = document.getElementById("availability-summary");
+  try {
+    const res = await fetch(`${API_BASE}/availability/${providerId}`);
+    if (!res.ok) throw new Error("Request failed");
+    const slots = await res.json();
+
+    if (!slots.length) {
+      badge.innerHTML = `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">No open slots right now</div>`;
+      summary.textContent = "No open slots right now — check back soon, or contact the provider directly.";
+      return;
+    }
+
+    badge.innerHTML = `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`;
+    summary.innerHTML = `${slots.length} open slot${slots.length === 1 ? "" : "s"} this week. Pick a service above, then choose a time on the next step.`;
+  } catch (err) {
+    console.error("Failed to load availability", err);
+    summary.textContent = "Couldn't load availability right now.";
+  }
+}
+
 async function loadAndRenderReviews(providerId) {
   const reviewsSection = document.createElement("section");
   reviewsSection.className = "mb-8";
@@ -46,7 +157,7 @@ async function loadAndRenderReviews(providerId) {
   document.getElementById("profile-root").appendChild(reviewsSection);
 
   try {
-    const response = await fetch(`${REVIEWS_API_BASE}/api/reviews/provider/${providerId}`);
+    const response = await fetch(`${API_BASE}/reviews/provider/${providerId}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -56,7 +167,7 @@ async function loadAndRenderReviews(providerId) {
 
     reviewsSection.innerHTML = renderReviewsSection(data);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     reviewsSection.querySelector(".glam-card").textContent = "Could not connect to the server to load reviews.";
   }
 }
@@ -85,8 +196,8 @@ function renderReviewsSection(data) {
 }
 
 function renderReviewCard(r) {
-  const customerName = r.customer && r.customer.name ? r.customer.name : "Anonymous";
-  const date = new Date(r.createdAt).toLocaleDateString();
+  const customerName = r.booking_id && r.booking_id.customer_id ? r.booking_id.customer_id.name : "Anonymous";
+  const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : "";
   return `
     <div class="glam-card p-5">
       <div class="flex items-center justify-between">
@@ -96,96 +207,6 @@ function renderReviewCard(r) {
       ${r.comment ? `<p class="text-glam-ink/70 mt-2">${r.comment}</p>` : ""}
     </div>
   `;
-}
-
-function renderProfile(p) {
-  return `
-    <section class="glam-card p-8 mb-8">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <p class="glam-eyebrow mb-2">${capitalize(p.category)} · ${p.location}</p>
-          <h1 class="font-display text-3xl md:text-4xl text-glam-ink">${p.business_name}</h1>
-          <p class="text-sm font-semibold mt-2">
-            <span class="glam-accent">★</span> ${p.average_rating.toFixed(1)}
-            <span class="text-glam-ink/50 font-normal">(${p.review_count} reviews)</span>
-          </p>
-        </div>
-        ${p.fully_booked
-      ? `<div class="glam-status-full font-semibold text-sm border border-glam-rose/30 rounded-full px-4 py-2 whitespace-nowrap">Fully booked — check back soon</div>`
-      : `<div class="glam-status-available font-semibold text-sm border border-glam-sage/30 rounded-full px-4 py-2 whitespace-nowrap">Open for booking</div>`
-    }
-      </div>
-      <p class="text-glam-ink/70 mt-6 max-w-2xl">${p.bio}</p>
-      <p class="text-sm text-glam-ink/60 mt-3">Contact: ${p.contact_info}</p>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="font-display text-2xl text-glam-ink mb-4">Services</h2>
-      <div class="grid sm:grid-cols-2 gap-4">
-        ${p.services.map(renderService).join("")}
-      </div>
-    </section>
-
-    <section class="mb-8">
-      <h2 class="font-display text-2xl text-glam-ink mb-4">Availability</h2>
-      ${renderAvailability(p)}
-    </section>
-  `;
-}
-
-function renderService(s) {
-  return `
-    <div class="glam-card p-5 flex items-start justify-between gap-4">
-      <div>
-        <p class="font-display text-lg">${s.name}</p>
-        <p class="text-sm text-glam-ink/60 mt-1">${s.description}</p>
-        <p class="text-xs text-glam-ink/50 mt-2">${s.duration_minutes} min</p>
-      </div>
-      <div class="text-right shrink-0">
-        <p class="font-semibold mb-2">PKR ${s.price.toLocaleString()}</p>
-        <button
-          type="button"
-          class="book-btn glam-btn-primary text-xs font-semibold px-4 py-2 rounded-full"
-          data-service="${s.name}"
-        >Book</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderAvailability(p) {
-  if (p.fully_booked) {
-    return `
-      <div class="glam-card p-6 text-glam-ink/70 text-sm">
-        No open slots right now. Estimated next availability: <strong>in 3–5 days</strong>.
-        Placeholder — real build computes this live against <code>availability_slots</code>.
-      </div>
-    `;
-  }
-
-  const mockSlots = ["Today · 2:00 PM", "Today · 4:00 PM", "Tomorrow · 11:00 AM", "Tomorrow · 1:00 PM"];
-  return `
-    <div class="flex flex-wrap gap-3">
-      ${mockSlots
-      .map(
-        (slot) => `
-        <button type="button" class="book-btn glam-chip px-4 py-2 rounded-full text-sm" data-service="${slot}">
-          ${slot}
-        </button>`
-      )
-      .join("")}
-    </div>
-    <p class="text-xs text-glam-ink/50 mt-3">Placeholder slots — wired to <code>availability_slots</code> in the real build.</p>
-  `;
-}
-
-function bindBookingButtons() {
-  document.querySelectorAll(".book-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      // FR-13: guests are only prompted to log in at the point of booking.
-      window.location.href = "login.html?next=booking";
-    });
-  });
 }
 
 function capitalize(s) {

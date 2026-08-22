@@ -33,8 +33,8 @@
             "glam-gold": "#0A222E",
             "glam-blush": "#FFFFFF",
             "glam-sage": "#464858",
-            "glam-cloud": "#FFFFFF",
-            "glam-nav": "#0F3040",
+            "glam-cloud": "#D99B7F",
+            "glam-nav": "#D99B7F",
             "glam-warn": "#A56F63",
             "glam-peach": "#D99B7F"
           },
@@ -66,10 +66,14 @@
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <a href="login.html"
-          class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
-        <a href="register.html"
-          class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
+        <div id="auth-nav-buttons" class="flex items-center gap-2 sm:gap-3">
+          <a href="login.html"
+            class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log
+            in</a>
+          <a href="register.html"
+            class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign
+            up</a>
+        </div>
         <button id="nav-toggle" type="button" class="md:hidden p-2 rounded-lg hover:bg-black/5" aria-expanded="false"
           aria-controls="nav-menu" aria-label="Toggle menu">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -166,7 +170,6 @@
     </div>
   </footer>
 
-  <script src="js/mock-data.js"></script>
   <script src="js/landing.js"></script>
   <script src="js/nav.js"></script>
 </body>

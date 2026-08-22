@@ -1,17 +1,14 @@
 /* ==========================================================================
-   Glamtopia — design tokens (v3: Deep Navy / Charcoal / Terracotta / Peach)
+   Glamtopia — design tokens (v4: Peach surfaces, Navy for text/headings)
 
    Palette:
-     --glam-navy    #0F3040  Deep Navy      — navbar, primary buttons,
-                                              important headings, strong UI
-     --glam-charcoal#464858  Charcoal Slate — secondary text, borders,
-                                              dropdowns/filters
-     --glam-terracotta #A56F63 Muted Terracotta — secondary buttons, badges,
-                                              selected states (used sparingly)
-     --glam-peach   #D99B7F  Soft Dusty Peach — ratings, icons, hover/active
-                                              states, small accents (never a
-                                              background fill)
-     --glam-white   #FFFFFF  Primary background — cards, page bg, forms
+     --glam-navy    #0F3040  Deep Navy      — headings, body-strong text,
+                                              icons/ratings, primary buttons
+     --glam-charcoal#464858  Charcoal Slate — secondary/body text, borders
+     --glam-terracotta #A56F63 Muted Terracotta — secondary buttons, badges
+     --glam-peach   #D99B7F  Soft Dusty Peach — navbar, footer, and card
+                                              SURFACES (per revised direction)
+     --glam-white   #FFFFFF  Page background, form inputs
 
    Type:
      Display — 'Fraunces' (headings)
@@ -21,11 +18,14 @@
    glam-cloud, glam-nav, glam-warn) are kept as-is on purpose — every page's
    Tailwind config and every existing class in the markup (text-glam-ink,
    bg-glam-nav, etc.) still works unchanged. Only what each token POINTS TO
-   changed. New: --glam-peach, used explicitly where the brief calls for it.
+   changed.
 
-   Signature: clean white cards with a subtle border and soft shadow (the
-   old frosted-glass blur + olive hairline is gone — replaced with a
-   restrained peach top edge, used sparingly, not on every card).
+   Revision note: navy was originally the navbar/card surface color; per
+   direction it's now used for text/headings/icons only, and peach carries
+   the navbar and card surfaces instead. Everything that used to sit on a
+   WHITE card (star icons, badges, pills) got re-checked here for contrast
+   against the new PEACH card surface — a few of those switched from peach
+   to navy or white so they don't disappear into the card behind them.
    ========================================================================== */
 
 :root {
@@ -39,8 +39,8 @@
   /* Old token names, remapped */
   --glam-blush: #ffffff;
   /* page background */
-  --glam-nav: #0f3040;
-  /* navbar / footer surface */
+  --glam-nav: rgba(217, 155, 127, 0.85);
+  /* navbar / footer surface — now peach */
   --glam-rose: #0f3040;
   /* primary button base */
   --glam-gold: #0a222e;
@@ -51,9 +51,9 @@
   /* secondary text / borders */
   --glam-warn: #a56f63;
   /* "fully booked" / secondary emphasis */
-  --glam-cloud: #ffffff;
-  /* card / chip surface */
-  --glam-cloud-solid: #ffffff;
+  --glam-cloud: rgba(217, 155, 127, 0.85);
+  /* card / chip surface — now peach */
+  --glam-cloud-solid: #d99b7f;
 }
 
 * {
@@ -86,20 +86,22 @@ body {
   color: var(--glam-navy) !important;
 }
 
-/* ---------- Cards: clean white surface, subtle border + shadow ---------- */
+/* ---------- Cards: peach surface, navy top edge for definition ---------- */
 .glam-card {
   background: var(--glam-cloud);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 14px;
-  border: 1px solid rgba(70, 72, 88, 0.12);
-  border-top: 2px solid var(--glam-peach);
-  box-shadow: 0 2px 8px rgba(15, 48, 64, 0.06);
+  border: 1px solid rgba(15, 48, 64, 0.1);
+  border-top: 3px solid var(--glam-navy);
+  box-shadow: 0 2px 8px rgba(15, 48, 64, 0.1);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .glam-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 28px rgba(15, 48, 64, 0.12), 0 4px 10px rgba(15, 48, 64, 0.06);
-  border-color: rgba(70, 72, 88, 0.18);
+  box-shadow: 0 14px 28px rgba(15, 48, 64, 0.16), 0 4px 10px rgba(15, 48, 64, 0.08);
+  border-color: rgba(15, 48, 64, 0.18);
 }
 
 /* Eyebrow labels — small caps, letter-spaced */
@@ -109,7 +111,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--glam-terracotta);
+  color: var(--glam-navy);
 }
 
 /* ---------- Buttons ---------- */
@@ -144,8 +146,8 @@ body {
   box-shadow: 0 4px 12px rgba(165, 111, 99, 0.25);
 }
 
-/* Filter/category chips — peach marks the active/selected one, as the
-   brief specifies ("active indicators, selected UI elements" = peach) */
+/* Filter/category chips sit on the white page background (not on cards),
+   so peach-for-selected still reads perfectly well there. */
 .glam-chip {
   border: 1.5px solid rgba(70, 72, 88, 0.2);
   color: var(--glam-ink);
@@ -154,7 +156,7 @@ body {
 }
 
 .glam-chip:hover {
-  border-color: var(--glam-peach);
+  border-color: var(--glam-terracotta);
   color: var(--glam-navy);
 }
 
@@ -166,24 +168,34 @@ body {
   box-shadow: 0 2px 8px rgba(217, 155, 127, 0.35);
 }
 
-/* Status text — no green/red in the brand palette, so "available" reads
-   confident in navy and "fully booked" stays in the warm terracotta tone
-   (close to its old role, so this one barely changed). */
+/* Status text — no green/red in the brand palette. Both statuses get a
+   filled pill rather than plain colored text: terracotta text directly on
+   the new peach card background only has ~1.8:1 contrast (fails WCAG,
+   genuinely hard to read), so "fully booked" is now a solid pill instead
+   of plain text, and "available" gets a subtle navy-tinted pill to match. */
 .glam-status-available {
   color: var(--glam-navy);
+  background-color: rgba(15, 48, 64, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 
 .glam-status-full {
-  color: var(--glam-warn);
+  color: #fff;
+  background-color: #8c5e54;
+  /* terracotta, darkened for AA contrast with white text */
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 
-/* Small accent utility for rating stars / icons / active dots — the ONE
-   place peach appears as a small foreground mark, never as a background. */
+/* Small accent utility for rating stars / icons / active dots. Navy, not
+   peach — these mostly sit ON peach card surfaces now, and peach-on-peach
+   would be invisible. Navy is the color that actually pops against peach. */
 .glam-accent {
-  color: var(--glam-peach);
+  color: var(--glam-navy);
 }
 
-/* ---------- Navbar & footer: dark navy surface needs light content ---------- */
+/* ---------- Navbar & footer: peach surface, navy content ---------- */
 /* bg-glam-nav is only ever used on <header> and <footer> in this codebase,
    so scoping the override to those two elements (and their descendants) is
    safe and won't leak into body copy elsewhere. !important is used
@@ -191,46 +203,29 @@ body {
    text-glam-ink/60) have normal class specificity and would otherwise win
    over a plain element selector. */
 header,
+footer {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+header,
 footer,
 header *,
 footer * {
-  color: #ffffff !important;
+  color: var(--glam-navy) !important;
 }
 
 header a:hover,
 footer a:hover {
-  color: var(--glam-peach) !important;
+  color: var(--glam-terracotta) !important;
 }
 
-/* The "Sign up" primary button sitting ON the navy navbar needs to stand
-   out from that same navy — peach does the job and doubles as the
-   brand's signature warm accent right where people first see it. */
-header .glam-btn-primary {
-  background-color: var(--glam-peach) !important;
-  color: var(--glam-navy) !important;
-  box-shadow: none;
-}
-
-header .glam-btn-primary:hover {
-  background-color: var(--glam-terracotta) !important;
-  color: #fff !important;
-}
-
-/* The "Log in" outline button on the navbar: white outline instead of the
-   terracotta one used elsewhere, since terracotta-on-navy reads muddy */
-header .glam-btn-outline {
-  border-color: rgba(255, 255, 255, 0.7);
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-header .glam-btn-outline:hover {
-  background-color: #fff;
-  color: var(--glam-navy) !important;
-}
+/* Primary/outline buttons already read perfectly well on peach without any
+   special-casing — navy-on-peach and terracotta-on-peach both have strong
+   contrast, so no navbar-specific button overrides are needed anymore. */
 
 #nav-toggle:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(15, 48, 64, 0.08) !important;
 }
 
 /* Nav / footer surface uses the bg-glam-nav Tailwind utility directly (see

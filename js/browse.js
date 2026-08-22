@@ -1,34 +1,38 @@
 /**
- * Browse/search page logic. All filtering happens client-side against the
- * mock provider list — this is the seam where a real build swaps in
- * GET /api/providers?category=&q=&maxPrice=&available= (SRS FR-03).
+ * Browse/search page logic. Fetches real providers from
+ * GET /api/providers?category=&search=&sort= — filtering happens server-side
+ * (see server/controllers/providerProfileController.js), so this file just
+ * builds the query string and re-fetches whenever a control changes.
+ *
+ * Price and "available now" filters were dropped from the previous
+ * mock-data version: GET /api/providers returns provider profiles, not
+ * their services, so per-provider pricing/availability isn't available at
+ * this list level without an extra round trip per card. If that's wanted
+ * later, the clean way is a dedicated aggregation endpoint rather than
+ * N+1 fetching services for every card in a results grid.
  */
-(async function initBrowse() {
-  const allProviders = await MockAPI.getProviders();
+const CATEGORIES = ["hair", "makeup", "nails", "skincare"];
+const API_BASE = "http://localhost:5000/api";
 
+(function initBrowse() {
   const state = {
     query: "",
     category: new URLSearchParams(window.location.search).get("category") || "all",
-    maxPrice: 15000,
-    availableOnly: false,
-    sort: "rating"
+    sort: "rating",
   };
 
   const els = {
     search: document.getElementById("search-input"),
     sort: document.getElementById("sort-select"),
     chips: document.getElementById("category-chips"),
-    price: document.getElementById("price-range"),
-    priceValue: document.getElementById("price-range-value"),
-    availableOnly: document.getElementById("available-only"),
     grid: document.getElementById("results-grid"),
     count: document.getElementById("results-count"),
-    empty: document.getElementById("empty-state")
+    empty: document.getElementById("empty-state"),
   };
 
   renderChips();
   bindEvents();
-  render();
+  fetchAndRender();
 
   function renderChips() {
     const cats = ["all", ...CATEGORIES];
@@ -46,14 +50,16 @@
   }
 
   function bindEvents() {
+    let debounceTimer;
     els.search.addEventListener("input", (e) => {
-      state.query = e.target.value.trim().toLowerCase();
-      render();
+      state.query = e.target.value.trim();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(fetchAndRender, 300); // avoid a request per keystroke
     });
 
     els.sort.addEventListener("change", (e) => {
       state.sort = e.target.value;
-      render();
+      fetchAndRender();
     });
 
     els.chips.addEventListener("click", (e) => {
@@ -63,79 +69,49 @@
       [...els.chips.children].forEach((c) =>
         c.setAttribute("aria-pressed", c === btn ? "true" : "false")
       );
-      render();
-    });
-
-    els.price.addEventListener("input", (e) => {
-      state.maxPrice = Number(e.target.value);
-      els.priceValue.textContent =
-        state.maxPrice >= 15000 ? "Any" : `PKR ${state.maxPrice.toLocaleString()}`;
-      render();
-    });
-
-    els.availableOnly.addEventListener("change", (e) => {
-      state.availableOnly = e.target.checked;
-      render();
+      fetchAndRender();
     });
   }
 
-  function getFiltered() {
-    let list = allProviders.filter((p) => {
-      const matchesQuery =
-        !state.query ||
-        p.business_name.toLowerCase().includes(state.query) ||
-        p.category.toLowerCase().includes(state.query);
+  async function fetchAndRender() {
+    els.count.textContent = "Loading…";
+    try {
+      const url = new URL(`${API_BASE}/providers`);
+      if (state.category !== "all") url.searchParams.set("category", state.category);
+      if (state.query) url.searchParams.set("search", state.query);
+      if (state.sort === "rating" || state.sort === "newest" || state.sort === "reviews") {
+        url.searchParams.set("sort", state.sort);
+      }
 
-      const matchesCategory = state.category === "all" || p.category === state.category;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Request failed");
+      const results = await res.json();
 
-      const cheapestPrice = Math.min(...p.services.map((s) => s.price));
-      const matchesPrice = cheapestPrice <= state.maxPrice;
-
-      const matchesAvailability = !state.availableOnly || !p.fully_booked;
-
-      return matchesQuery && matchesCategory && matchesPrice && matchesAvailability;
-    });
-
-    if (state.sort === "rating") {
-      list.sort((a, b) => b.average_rating - a.average_rating);
-    } else if (state.sort === "price-low") {
-      list.sort((a, b) => minPrice(a) - minPrice(b));
-    } else if (state.sort === "price-high") {
-      list.sort((a, b) => minPrice(b) - minPrice(a));
+      els.count.textContent = `${results.length} provider${results.length === 1 ? "" : "s"} found`;
+      els.grid.innerHTML = results.map(renderCard).join("");
+      els.empty.classList.toggle("hidden", results.length > 0);
+    } catch (err) {
+      console.error("Failed to load providers", err);
+      els.count.textContent = "";
+      els.grid.innerHTML = "";
+      els.empty.classList.remove("hidden");
+      els.empty.textContent = `Couldn't load providers. Is the backend running on ${API_BASE}?`;
     }
-
-    return list;
-  }
-
-  function render() {
-    const results = getFiltered();
-    els.count.textContent = `${results.length} provider${results.length === 1 ? "" : "s"} found`;
-    els.grid.innerHTML = results.map(renderCard).join("");
-    els.empty.classList.toggle("hidden", results.length > 0);
   }
 
   function renderCard(p) {
-    const statusLabel = p.fully_booked
-      ? `<span class="glam-status-full text-xs font-semibold">Fully booked</span>`
-      : `<span class="glam-status-available text-xs font-semibold">Available</span>`;
-
     return `
-      <a href="provider.html?id=${p.id}" class="glam-card p-6 block">
+      <a href="provider.html?id=${p._id}" class="glam-card p-6 block">
         <p class="glam-eyebrow">${capitalize(p.category)}</p>
         <p class="font-display text-xl mt-2">${p.business_name}</p>
         <p class="text-sm text-glam-ink/60 mt-1">${p.location}</p>
-        <p class="text-sm text-glam-ink/70 mt-3 line-clamp-2">${p.bio}</p>
-        <div class="flex items-center justify-between mt-4">
-          <span class="text-sm font-semibold"><span class="glam-accent">★</span> ${p.average_rating.toFixed(1)} <span class="text-glam-ink/50 font-normal">(${p.review_count})</span></span>
-          ${statusLabel}
-        </div>
-        <p class="text-xs text-glam-ink/50 mt-2">From PKR ${minPrice(p).toLocaleString()}</p>
+        <p class="text-sm text-glam-ink/70 mt-3 line-clamp-2">${p.bio || ""}</p>
+        <p class="text-sm font-semibold mt-4">
+          <span class="glam-accent">★</span> ${(p.average_rating || 0).toFixed(1)}
+          <span class="text-glam-ink/50 font-normal">(${p.review_count || 0})</span>
+        </p>
       </a>
     `;
-  }
-
-  function minPrice(p) {
-    return Math.min(...p.services.map((s) => s.price));
   }
 
   function capitalize(s) {

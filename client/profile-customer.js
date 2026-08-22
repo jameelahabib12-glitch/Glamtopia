@@ -102,14 +102,24 @@ customerProfileForm.addEventListener("submit", async (event) => {
 
         if (!response.ok) {
             message.textContent = data.message || "Profile update failed";
+            message.style.color = "#B0453A";
             return;
         }
 
-        message.textContent = "Profile updated successfully!";
+        message.textContent = "Profile updated successfully! Taking you back to your dashboard…";
+        message.style.color = "#0F3040";
 
         if (data.user && data.user.photo) {
             photoPreview.innerHTML = `<img src="${API_BASE}${data.user.photo}" alt="Profile photo">`;
         }
+
+        // Previously this page had no way back — updating your profile left
+        // you stranded here with just a message. Now it returns you to the
+        // dashboard automatically, with a short pause so you actually see
+        // the success message and the updated photo preview first.
+        setTimeout(() => {
+            window.location.href = "../customer-dashboard.html";
+        }, 1200);
 
         console.log(data);
 

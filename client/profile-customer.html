@@ -14,23 +14,27 @@
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
+            font-family: 'Manrope', Arial, sans-serif;
+            background: #FFFFFF;
+            color: #464858;
         }
 
         .container {
             width: 90%;
             max-width: 700px;
             margin: 50px auto;
-            background: white;
+            background: #FFFFFF;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 14px;
+            border: 1px solid rgba(70, 72, 88, 0.14);
+            box-shadow: 0 4px 15px rgba(15, 48, 64, 0.08);
         }
 
         h1 {
             text-align: center;
             margin-bottom: 25px;
+            color: #0F3040;
+            font-family: 'Fraunces', serif;
         }
 
         label {
@@ -38,15 +42,25 @@
             margin-top: 15px;
             margin-bottom: 6px;
             font-weight: bold;
+            color: #464858;
         }
 
         input,
         textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border: 1px solid rgba(70, 72, 88, 0.3);
+            border-radius: 8px;
             font-size: 15px;
+            font-family: 'Manrope', Arial, sans-serif;
+            color: #0F3040;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: 2px solid #D99B7F;
+            outline-offset: 1px;
+            border-color: #D99B7F;
         }
 
         textarea {
@@ -65,12 +79,13 @@
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: #e9ecef;
+            background: #F5F5F7;
+            border: 1px solid rgba(70, 72, 88, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
-            color: #6c757d;
+            color: #464858;
             text-align: center;
             overflow: hidden;
             flex-shrink: 0;
@@ -86,12 +101,18 @@
             width: 100%;
             margin-top: 25px;
             padding: 13px;
-            background: #007bff;
+            background: #0F3040;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+        }
+
+        .save-btn:hover {
+            background: #0A222E;
+            opacity: 1;
         }
 
         button:hover {
@@ -102,11 +123,13 @@
             text-align: center;
             margin-top: 15px;
             font-weight: bold;
+            color: #0F3040;
         }
 
         .hint {
             font-size: 13px;
-            color: #6c757d;
+            color: #464858;
+            opacity: 0.75;
             font-weight: normal;
             margin-top: -2px;
         }
@@ -117,31 +140,22 @@
 
     <div class="container">
 
+        <a href="../customer-dashboard.html"
+            style="display:inline-block; margin-bottom:14px; font-size:13px; color:#464858; text-decoration:none;">&larr;
+            Back to Dashboard</a>
+
         <h1>Edit Your Profile</h1>
 
         <form id="customerProfileForm">
 
             <label for="name">Name</label>
-            <input
-                type="text"
-                id="name"
-                placeholder="Enter your name"
-                required
-            >
+            <input type="text" id="name" placeholder="Enter your name" required>
 
             <label for="email">Email</label>
-            <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                required
-            >
+            <input type="email" id="email" placeholder="Enter your email" required>
 
             <label for="bio">Bio</label>
-            <textarea
-                id="bio"
-                placeholder="A short note about yourself..."
-            ></textarea>
+            <textarea id="bio" placeholder="A short note about yourself..."></textarea>
 
             <label for="photo">Profile Photo</label>
             <div class="photo-row">
@@ -160,4 +174,5 @@
     <script src="profile-customer.js"></script>
 
 </body>
+
 </html>

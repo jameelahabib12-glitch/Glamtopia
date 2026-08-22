@@ -23,8 +23,8 @@
             "glam-gold": "#0A222E",
             "glam-blush": "#FFFFFF",
             "glam-sage": "#464858",
-            "glam-cloud": "#FFFFFF",
-            "glam-nav": "#0F3040",
+            "glam-cloud": "#D99B7F",
+            "glam-nav": "#D99B7F",
             "glam-warn": "#A56F63",
             "glam-peach": "#D99B7F"
           },
@@ -284,16 +284,53 @@
           data
         );
 
+        // If this login was triggered by clicking "Book" while logged out
+        // (see booking-flow.html's checkAuth), returnTo carries them right
+        // back to the exact booking they were trying to make — a customer
+        // account only, since a provider account has no business finishing
+        // someone else's booking flow.
+        const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+        if (
+          returnTo &&
+          returnTo.startsWith("/booking-flow.html") && // only allow this exact known-safe relative path — never an arbitrary/external redirect target
+          data.user &&
+          data.user.role === "customer"
+        ) {
+          // URLSearchParams.get() already decodes the value once — no need
+          // to decodeURIComponent again here.
+          window.location.href = returnTo;
+          return;
+        }
 
-        // Provider → Provider Profile
+        // Provider → check whether they've already set up a profile.
+        // Previously this always sent providers back to the setup FORM on
+        // every login, forever — even someone who registered and filled it
+        // out weeks ago. Now: profile exists -> dashboard, first time only
+        // (no profile yet, 404) -> the setup form.
 
         if (
           data.user &&
           data.user.role === "provider"
         ) {
 
-          window.location.href =
-            "client/profile-provider.html";
+          try {
+            const profileCheck = await fetch(
+              `${API_BASE}/api/providers/me`,
+              { credentials: "include" }
+            );
+
+            window.location.href = profileCheck.ok
+              ? "client/provider-dashboard.html"
+              : "client/profile-provider.html";
+          } catch (profileCheckError) {
+            // If this check itself fails (e.g. network hiccup), fall back
+            // to the setup form — it's the safer default of the two, since
+            // profile-provider.html itself pre-fills and just re-saves if
+            // a profile already exists, whereas landing on the dashboard
+            // with no profile leads to broken empty-state everywhere.
+            console.error("Provider profile check failed:", profileCheckError);
+            window.location.href = "client/profile-provider.html";
+          }
 
           return;
         }

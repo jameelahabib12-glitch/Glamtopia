@@ -22,8 +22,8 @@
             "glam-gold": "#0A222E",
             "glam-blush": "#FFFFFF",
             "glam-sage": "#464858",
-            "glam-cloud": "#FFFFFF",
-            "glam-nav": "#0F3040",
+            "glam-cloud": "#D99B7F",
+            "glam-nav": "#D99B7F",
             "glam-warn": "#A56F63",
             "glam-peach": "#D99B7F"
           },
@@ -41,10 +41,14 @@
     <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
       <a href="index.html" class="font-display text-xl sm:text-2xl font-semibold text-glam-ink">Glamtopia</a>
       <div class="flex items-center gap-3">
-        <a href="login.html"
-          class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log in</a>
-        <a href="register.html"
-          class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign up</a>
+        <div id="auth-nav-buttons" class="flex items-center gap-2 sm:gap-3">
+          <a href="login.html"
+            class="glam-btn-outline text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Log
+            in</a>
+          <a href="register.html"
+            class="glam-btn-primary text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">Sign
+            up</a>
+        </div>
       </div>
     </nav>
   </header>
@@ -61,29 +65,13 @@
           class="flex-1 border border-black/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none" />
         <select id="sort-select" class="border border-black/10 rounded-lg px-4 py-2.5 text-sm">
           <option value="rating">Sort: Highest rated</option>
-          <option value="price-low">Sort: Price (low to high)</option>
-          <option value="price-high">Sort: Price (high to low)</option>
+          <option value="reviews">Sort: Most reviewed</option>
+          <option value="newest">Sort: Newest</option>
         </select>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-4" id="category-chips" role="group" aria-label="Filter by category">
+      <div class="flex flex-wrap gap-2" id="category-chips" role="group" aria-label="Filter by category">
         <!-- chips injected by browse.js -->
-      </div>
-
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label for="price-range" class="text-xs font-semibold text-glam-ink/60 block mb-1">
-            Max price: <span id="price-range-value">Any</span>
-          </label>
-          <input id="price-range" type="range" min="0" max="15000" step="500" value="15000"
-            class="w-full accent-glam-rose" />
-        </div>
-        <div class="flex items-end">
-          <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" id="available-only" class="accent-glam-rose" />
-            Available now only
-          </label>
-        </div>
       </div>
     </div>
 
@@ -105,7 +93,6 @@
     </div>
   </footer>
 
-  <script src="js/mock-data.js"></script>
   <script src="js/browse.js"></script>
   <script src="js/nav.js"></script>
 </body>

@@ -33,11 +33,12 @@
   <link rel="stylesheet" href="css/styles.css" />
   <style>
     /* .glass-card-opaque was used below but never defined anywhere this
-       page could see it — also fixed here, matching provider-dashboard.html */
+       page could see it — also fixed here, matching provider-dashboard.html.
+       Peach surface, navy text — same direction as the marketing pages. */
     .glass-card-opaque {
-      background: #FFFFFF;
-      border: 1px solid rgba(70, 72, 88, 0.12);
-      box-shadow: 0 2px 10px rgba(15, 48, 64, 0.06);
+      background: #D99B7F;
+      border: 1px solid rgba(15, 48, 64, 0.12);
+      box-shadow: 0 2px 10px rgba(15, 48, 64, 0.08);
     }
   </style>
 </head>
@@ -50,9 +51,15 @@
 
   <div id="dashboard" class="hidden max-w-5xl mx-auto px-6 py-10">
     <header class="flex justify-between items-center mb-10">
-      <div>
-        <p class="text-sm text-glamOlive/60">Welcome back,</p>
-        <h1 id="customerName" class="text-2xl font-bold" style="font-family:'Fraunces',serif;">—</h1>
+      <div class="flex items-center gap-4">
+        <div id="avatarContainer"
+          class="w-14 h-14 rounded-full bg-glamLightSage/40 border border-glamSage/30 flex items-center justify-center text-glamOlive font-bold text-lg overflow-hidden shrink-0">
+          <span id="avatarInitial">—</span>
+        </div>
+        <div>
+          <p class="text-sm text-glamOlive/60">Welcome back,</p>
+          <h1 id="customerName" class="text-2xl font-bold" style="font-family:'Fraunces',serif;">—</h1>
+        </div>
       </div>
       <button id="logoutBtn"
         class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-xl border border-glamSage/40 hover:bg-glamSage/10 transition-all">
@@ -104,13 +111,32 @@
         }
 
         document.getElementById("customerName").textContent = data.user.name;
+        document.getElementById("avatarInitial").textContent = data.user.name.charAt(0).toUpperCase();
         document.getElementById("authGate").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
 
+        loadAvatar();
         loadBookings();
       } catch (err) {
         console.error("Session check failed:", err);
         window.location.href = "login.html";
+      }
+    }
+
+    // Separate call because /api/auth/me is intentionally minimal (id/name/
+    // email/role only) — the photo lives on the fuller /api/profile response,
+    // the same endpoint the profile edit page saves through.
+    async function loadAvatar() {
+      try {
+        const res = await fetch(`${API_BASE}/profile`, { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.user && data.user.photo) {
+          document.getElementById("avatarContainer").innerHTML =
+            `<img src="http://localhost:5000${data.user.photo}" alt="Your profile photo" class="w-full h-full object-cover">`;
+        }
+      } catch (err) {
+        console.error("Failed to load avatar:", err);
       }
     }
 
@@ -130,21 +156,71 @@
           return;
         }
 
-        container.innerHTML = bookings.map(b => `
-          <div class="flex justify-between items-center p-3 bg-glamLightSage/20 border border-glamSage/30 rounded-xl">
-            <div>
-              <p class="text-sm font-bold text-glamOlive">${b.service_id?.name || "Service"}</p>
-              <p class="text-xs text-glamOlive/60">${b.provider_id?.business_name || "Provider"} · ${b.slot_id ? new Date(b.slot_id.start_time).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""
-          }</p>
-            </div>
-            <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-glamSage/20">${b.status}</span>
-          </div>
-        `).join("");
+        container.innerHTML = bookings.map(renderBookingRow).join("");
       } catch (err) {
         console.error("Failed to load bookings:", err);
         container.innerHTML = `<p class="text-xs text-red-600">Couldn't load your bookings. Try refreshing.</p>`;
       }
     }
+
+    // SRS §8: customers can only cancel at least 24h before the appointment
+    // — this mirrors the same rule the server enforces (bookingController's
+    // cancelBooking), so the button is disabled up front instead of the
+    // customer tapping Cancel and only THEN finding out it's too late.
+    const CANCEL_CUTOFF_HOURS = 24;
+
+    function renderBookingRow(b) {
+      const canCancel = ["pending", "confirmed"].includes(b.status);
+      const startTime = b.slot_id ? new Date(b.slot_id.start_time) : null;
+      const hoursUntil = startTime ? (startTime - new Date()) / (1000 * 60 * 60) : null;
+      const tooLateToCancel = hoursUntil !== null && hoursUntil < CANCEL_CUTOFF_HOURS;
+
+      let action = "";
+      if (canCancel) {
+        if (tooLateToCancel) {
+          action = `<span class="text-[10px] text-glamOlive/50 italic whitespace-nowrap">Too close to cancel</span>`;
+        } else {
+          action = `<button data-cancel-booking="${b._id}" class="text-[10px] font-bold uppercase text-red-600 hover:underline whitespace-nowrap">Cancel</button>`;
+        }
+      }
+
+      return `
+        <div class="flex justify-between items-center p-3 bg-glamCream/70 border border-glamSage/30 rounded-xl gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-glamOlive">${b.service_id?.name || "Service"}</p>
+            <p class="text-xs text-glamOlive/60">${b.provider_id?.business_name || "Provider"} · ${startTime ? startTime.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""
+        }</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-glamSage/20">${b.status}</span>
+            ${action}
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById("bookingsContainer").addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-cancel-booking]");
+      if (!btn) return;
+
+      if (!confirm("Cancel this booking? This cannot be undone.")) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/${btn.dataset.cancelBooking}/cancel`, {
+          method: "PATCH",
+          credentials: "include",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(data.message || "Could not cancel this booking.");
+          return;
+        }
+        loadBookings();
+      } catch (err) {
+        console.error("Cancel booking failed:", err);
+        alert("Could not reach the server.");
+      }
+    });
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await fetch(`${API_BASE}/auth/logout`, { method: "POST", credentials: "include" });

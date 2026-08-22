@@ -24,16 +24,20 @@
         }
     </script>
     <style>
+        /* Peach card/navbar surfaces, navy text — same direction as the
+           marketing pages (css/styles.css .glam-card). This class covers
+           both the sticky top header AND the 4 stat cards, so both pick up
+           the navbar treatment automatically. */
         .glass-card {
-            background: #FFFFFF;
-            border: 1px solid rgba(70, 72, 88, 0.14);
-            box-shadow: 0 2px 8px rgba(15, 48, 64, 0.06);
+            background: #D99B7F;
+            border: 1px solid rgba(15, 48, 64, 0.12);
+            box-shadow: 0 2px 8px rgba(15, 48, 64, 0.08);
         }
 
         .glass-card-opaque {
-            background: #FFFFFF;
-            border: 1px solid rgba(70, 72, 88, 0.12);
-            box-shadow: 0 2px 10px rgba(15, 48, 64, 0.06);
+            background: #D99B7F;
+            border: 1px solid rgba(15, 48, 64, 0.12);
+            box-shadow: 0 2px 10px rgba(15, 48, 64, 0.08);
         }
 
         .stat-card {
@@ -93,7 +97,7 @@
             <div class="flex items-center space-x-3">
                 <span class="text-2xl font-bold tracking-tight text-glamOlive">✨ Glamtopia</span>
                 <span
-                    class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-glamLightSage text-glamOlive rounded-full">Provider
+                    class="hidden sm:inline-block px-2.5 py-0.5 text-xs font-semibold bg-white/70 text-glamOlive rounded-full">Provider
                     Portal</span>
             </div>
             <div class="flex items-center space-x-4">
@@ -153,7 +157,7 @@
                         </div>
                         <div class="flex space-x-2 w-full sm:w-auto flex-wrap gap-y-2" id="bookingTabs">
                             <button data-status="all"
-                                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-glamLightSage text-glamOlive shadow-sm">All</button>
+                                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-glamOlive shadow-sm">All</button>
                             <button data-status="pending"
                                 class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/50 text-glamOlive hover:bg-glamLightSage/50 transition-all">Pending</button>
                             <button data-status="confirmed"
@@ -195,7 +199,7 @@
                     <div class="flex justify-between items-center pb-4 mb-4 border-b border-glamSage/20">
                         <h3 class="text-lg font-bold text-glamOlive">Offered Services</h3>
                         <button id="openServiceModalBtn"
-                            class="text-xs font-bold text-glamOlive bg-glamLightSage px-3 py-1.5 rounded-lg hover:bg-glamSage hover:text-white transition-all">+
+                            class="text-xs font-bold text-glamOlive bg-white px-3 py-1.5 rounded-lg hover:bg-glamSage hover:text-white transition-all">+
                             New Service</button>
                     </div>
 
@@ -356,11 +360,11 @@
             tabButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
                     tabButtons.forEach(btn => {
-                        btn.classList.remove('bg-glamLightSage', 'shadow-sm');
+                        btn.classList.remove('bg-white', 'shadow-sm');
                         btn.classList.add('bg-white/50');
                     });
                     e.currentTarget.classList.remove('bg-white/50');
-                    e.currentTarget.classList.add('bg-glamLightSage', 'shadow-sm');
+                    e.currentTarget.classList.add('bg-white', 'shadow-sm');
                     activeBookingFilter = e.currentTarget.dataset.status;
                     loadBookings();
                 });
@@ -586,7 +590,7 @@
             const dateLabel = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
             const timeLabel = start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
             return `
-                <div class="p-3 bg-glamLightSage/30 border border-glamSage/40 rounded-xl text-center relative group">
+                <div class="p-3 bg-white border border-glamSage/40 rounded-xl text-center relative group">
                     <p class="text-xs font-bold text-glamOlive">${dateLabel}</p>
                     <p class="text-xs text-glamOlive/70 my-1">${timeLabel}</p>
                     <button data-delete-slot="${slot._id}" class="text-[10px] font-semibold text-red-600 hover:underline">Remove</button>
