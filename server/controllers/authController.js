@@ -19,7 +19,14 @@ async function register(req, res) {
     ) {
       return res.status(400).json({ message: "Invalid input format" });
     }
-    if (phone_number !== undefined && typeof phone_number !== "string") {
+    if (phone_number != null && typeof phone_number !== "string") {
+      // Loose `!= null` deliberately catches BOTH undefined and null —
+      // JSON has no `undefined`, so a client omitting the field entirely
+      // vs. explicitly sending `null` (which register.html does for an
+      // optional provider phone number) must both be treated as "not
+      // provided." The previous strict `!== undefined` check rejected a
+      // real, valid provider signup with no phone number as "Invalid
+      // input format."
       return res.status(400).json({ message: "Invalid input format" });
     }
 
