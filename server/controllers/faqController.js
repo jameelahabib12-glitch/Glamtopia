@@ -2,9 +2,6 @@ const Faq = require("../models/Faq");
 const ProviderProfile = require("../models/ProviderProfile");
 
 // GET /api/faqs?providerId=xxx
-// Returns general platform FAQs (provider_id: null) plus, if a providerId
-// is given, that specific provider's own FAQs on top. Used to populate the
-// widget's default "browse" list before the user types anything.
 async function listFaqs(req, res) {
     try {
         const { providerId } = req.query;
@@ -23,15 +20,11 @@ async function listFaqs(req, res) {
 }
 
 // POST /api/faqs/ask   body: { question: string, providerId?: string }
-// Very deliberately simple: this is a fixed-FAQ chatbot, not an NLP engine
-// (see SRS FR-13 and Section 8 decision #7 — basic Q&A was the agreed scope).
-// It scores each FAQ by how many of the user's words appear in the question,
-// and returns the best match if it clears a minimum relevance bar.
 async function askFaq(req, res) {
     try {
         const { question, providerId } = req.body;
 
-        if (!question || !question.trim()) {
+        if (typeof question !== "string" || !question.trim()) {
             return res.status(400).json({ message: "A question is required" });
         }
 
@@ -45,7 +38,7 @@ async function askFaq(req, res) {
             .toLowerCase()
             .replace(/[^\w\s]/g, "")
             .split(/\s+/)
-            .filter((w) => w.length > 2); // skip tiny filler words like "is", "do"
+            .filter((w) => w.length > 2);
 
         let best = null;
         let bestScore = 0;
@@ -81,14 +74,6 @@ async function askFaq(req, res) {
     }
 }
 
-// -----------------------------------------------------------------------
-// Everything below this line = Eeman's Week 2 Day-3 addition (Task 3).
-// Lets a logged-in provider manage their OWN FAQ entries on the shared
-// Faq collection. provider_id is always resolved server-side from the
-// session — never trust a provider_id sent in the request body, or one
-// provider could write into another provider's FAQ list.
-// -----------------------------------------------------------------------
-
 async function getMyProviderProfileId(userId) {
     const profile = await ProviderProfile.findOne({ user_id: userId });
     return profile ? profile._id : null;
@@ -103,8 +88,15 @@ async function createProviderFaq(req, res) {
         }
 
         const { question, answer, display_order } = req.body;
-        if (!question || !answer) {
+
+        if (typeof question !== "string" || typeof answer !== "string") {
+            return res.status(400).json({ message: "question and answer must be text" });
+        }
+        if (!question.trim() || !answer.trim()) {
             return res.status(400).json({ message: "question and answer are required" });
+        }
+        if (display_order !== undefined && typeof display_order !== "number") {
+            return res.status(400).json({ message: "display_order must be a number" });
         }
 
         const faq = await Faq.create({
@@ -135,8 +127,18 @@ async function updateProviderFaq(req, res) {
             if (req.body[field] !== undefined) updates[field] = req.body[field];
         }
 
+        if (updates.question !== undefined && typeof updates.question !== "string") {
+            return res.status(400).json({ message: "question must be text" });
+        }
+        if (updates.answer !== undefined && typeof updates.answer !== "string") {
+            return res.status(400).json({ message: "answer must be text" });
+        }
+        if (updates.display_order !== undefined && typeof updates.display_order !== "number") {
+            return res.status(400).json({ message: "display_order must be a number" });
+        }
+
         const faq = await Faq.findOneAndUpdate(
-            { _id: req.params.id, provider_id: providerId }, // ownership check — can't be null (general FAQs), must match this provider
+            { _id: req.params.id, provider_id: providerId },
             { $set: updates },
             { new: true, runValidators: true }
         );
@@ -153,8 +155,6 @@ async function updateProviderFaq(req, res) {
 }
 
 // DELETE /api/faqs/:id — provider deletes their own FAQ entry
-// (Real delete here, not archive — FAQs aren't tied to booking history like
-// services are, so there's no reason to keep a deleted one around.)
 async function deleteProviderFaq(req, res) {
     try {
         const providerId = await getMyProviderProfileId(req.session.userId);

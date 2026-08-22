@@ -5,9 +5,7 @@ const Service = require("../models/Service");
 const ProviderProfile = require("../models/ProviderProfile");
 const User = require("../models/User");
 
-// Customer cancellation warning threshold (SRS §7: "a tunable constant, to
-// be set by the team during implementation"). Crossing it suspends the
-// account (users.is_suspended).
+// SRS §7: "tunable constant" — confirmed with team as 3.
 const CANCELLATION_WARNING_THRESHOLD = 3;
 
 // Standard booking window (SRS §8 Final Decisions). Urgent/short-notice
@@ -25,219 +23,278 @@ async function getMyProviderProfileId(userId) {
 // ---------------------------------------------------------------------------
 // POST /api/bookings — customer books an open slot for a service.
 //
-// This is the answer to "checks slot availability before confirming" +
-// "conflict prevention per ERD §4": the slot claim and the booking creation
-// happen inside one MongoDB transaction, so either both succeed or neither
-// does. The claim itself is the same atomic
-//   updateOne({ _id: slotId, booked: false }, { $set: { booked: true } })
-// pattern documented in availabilityController — two simultaneous requests
-// for the same slot can never both win.
+// Merges two teammates' versions of this file:
+//  - Input validation (ObjectId format) and the atomic findOneAndUpdate
+//    claim style
+//  - The MIN_NOTICE_HOURS/MAX_ADVANCE_DAYS booking-window check (SRS §8),
+//    which had been dropped in one branch
+//  - The whole function wrapped in try/catch, not just the transaction body
+//    — a DB hiccup on the Service/Slot lookups BEFORE the transaction
+//    starts would otherwise be an unhandled rejection instead of a clean
+//    500
 // ---------------------------------------------------------------------------
-exports.createBooking = async (req, res) => {
-    const { serviceId, slotId } = req.body;
-
-    if (!serviceId || !slotId) {
-        return res.status(400).json({ message: "serviceId and slotId are required" });
-    }
-
-    const session = await mongoose.startSession();
-
+async function createBooking(req, res) {
     try {
-        let createdBooking;
+        const { serviceId, slotId } = req.body;
 
-        await session.withTransaction(async () => {
-            const service = await Service.findById(serviceId).session(session);
-            if (!service || !service.is_active) {
-                throw httpError(404, "Service not found or no longer active");
-            }
-
-            const slot = await AvailabilitySlot.findById(slotId).session(session);
-            if (!slot) {
-                throw httpError(404, "Slot not found");
-            }
-
-            // The slot and the service must belong to the SAME provider —
-            // otherwise a customer could book a slot from one provider's
-            // calendar against a totally different provider's service.
-            if (slot.provider_id.toString() !== service.provider_id.toString()) {
-                throw httpError(400, "This slot does not belong to that service's provider");
-            }
-
-            const now = new Date();
-            const minStart = new Date(now.getTime() + MIN_NOTICE_HOURS * 60 * 60 * 1000);
-            const maxStart = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
-            if (slot.start_time < minStart || slot.start_time > maxStart) {
-                throw httpError(
-                    400,
-                    `Bookings must be made between ${MIN_NOTICE_HOURS} hours and ${MAX_ADVANCE_DAYS} days in advance`
-                );
-            }
-
-            // The atomic claim — this is the double-booking guard. If another
-            // request claimed this slot a moment earlier, matchedCount is 0 and
-            // the whole transaction is aborted (the throw rolls it back).
-            const claim = await AvailabilitySlot.updateOne(
-                { _id: slotId, booked: false },
-                { $set: { booked: true } },
-                { session }
-            );
-            if (claim.matchedCount === 0) {
-                throw httpError(409, "This slot was just booked by someone else — please pick another");
-            }
-
-            const [booking] = await Booking.create(
-                [
-                    {
-                        customer_id: req.session.userId,
-                        provider_id: service.provider_id,
-                        service_id: service._id,
-                        slot_id: slot._id,
-                        status: "pending",
-                        price_at_booking: service.price,
-                    },
-                ],
-                { session }
-            );
-
-            createdBooking = booking;
-        });
-
-        return res.status(201).json({ message: "Booking request sent — waiting for provider confirmation", booking: createdBooking });
-    } catch (err) {
-        if (err.statusCode) {
-            return res.status(err.statusCode).json({ message: err.message });
+        if (typeof serviceId !== "string" || typeof slotId !== "string") {
+            return res.status(400).json({ message: "serviceId and slotId are required" });
         }
+        if (!mongoose.Types.ObjectId.isValid(serviceId) || !mongoose.Types.ObjectId.isValid(slotId)) {
+            return res.status(400).json({ message: "Invalid serviceId or slotId" });
+        }
+
+        const service = await Service.findById(serviceId);
+        if (!service || service.is_active === false) {
+            return res.status(404).json({ message: "Service not found or no longer active" });
+        }
+
+        const slot = await AvailabilitySlot.findById(slotId);
+        if (!slot) {
+            return res.status(404).json({ message: "Availability slot not found" });
+        }
+
+        // The slot and the service must belong to the SAME provider — otherwise
+        // a customer could book a slot from one provider's calendar against a
+        // totally different provider's service.
+        if (slot.provider_id.toString() !== service.provider_id.toString()) {
+            return res.status(400).json({ message: "This slot does not belong to that service's provider" });
+        }
+
+        const now = new Date();
+        const minStart = new Date(now.getTime() + MIN_NOTICE_HOURS * 60 * 60 * 1000);
+        const maxStart = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+        if (slot.start_time < minStart || slot.start_time > maxStart) {
+            return res.status(400).json({
+                message: `Bookings must be made between ${MIN_NOTICE_HOURS} hours and ${MAX_ADVANCE_DAYS} days in advance`,
+            });
+        }
+
+        const session = await mongoose.startSession();
+        let booking = null;
+        let slotWasTaken = false;
+
+        try {
+            await session.withTransaction(async () => {
+                // Atomic claim, INSIDE the transaction (SRS §6): if another request
+                // claimed this slot a moment earlier, this returns null and the
+                // throw below aborts + rolls back the whole transaction.
+                const claimedSlot = await AvailabilitySlot.findOneAndUpdate(
+                    { _id: slotId, booked: false },
+                    { $set: { booked: true } },
+                    { new: true, session }
+                );
+
+                if (!claimedSlot) {
+                    slotWasTaken = true;
+                    throw new Error("SLOT_ALREADY_TAKEN");
+                }
+
+                const created = await Booking.create(
+                    [
+                        {
+                            customer_id: req.session.userId,
+                            provider_id: service.provider_id,
+                            service_id: service._id,
+                            slot_id: slot._id,
+                            status: "pending",
+                            price_at_booking: service.price,
+                        },
+                    ],
+                    { session }
+                );
+
+                booking = created[0];
+            });
+        } catch (err) {
+            if (slotWasTaken) {
+                return res.status(409).json({ message: "That slot was just taken. Pick another time below." });
+            }
+            throw err; // handled by the outer catch below
+        } finally {
+            session.endSession();
+        }
+
+        const populatedBooking = await Booking.findById(booking._id)
+            .populate("provider_id")
+            .populate("service_id")
+            .populate("slot_id");
+
+        return res.status(201).json({
+            message: "Booking request sent — waiting for provider confirmation",
+            booking: populatedBooking,
+        });
+    } catch (err) {
         console.error("Create booking error:", err);
         return res.status(500).json({ message: "Server error while creating booking" });
-    } finally {
-        session.endSession();
     }
-};
-
-function httpError(statusCode, message) {
-    const err = new Error(message);
-    err.statusCode = statusCode;
-    return err;
 }
 
 // GET /api/bookings/mine — the logged-in customer's own bookings
-exports.listMyBookings = async (req, res) => {
+async function listMyBookings(req, res) {
     try {
-        const bookings = await Booking.find({ customer_id: req.session.userId })
-            .populate({ path: "provider_id", select: "business_name location contact_info" })
-            .populate({ path: "service_id", select: "name duration_minutes" })
-            .populate({ path: "slot_id", select: "start_time end_time" })
-            .sort({ created_at: -1 });
-
-        res.json(bookings);
-    } catch (err) {
-        console.error("List my bookings error:", err);
-        res.status(500).json({ message: "Failed to fetch your bookings" });
-    }
-};
-
-// GET /api/bookings/provider — the logged-in provider's incoming bookings
-exports.listProviderBookings = async (req, res) => {
-    try {
-        const providerId = await getMyProviderProfileId(req.session.userId);
-        if (!providerId) {
-            return res.status(400).json({ message: "You don't have a provider profile" });
-        }
-
-        const filter = { provider_id: providerId };
-        if (req.query.status) filter.status = req.query.status;
+        const { status } = req.query;
+        const filter = { customer_id: req.session.userId };
+        if (status && status !== "all") filter.status = status;
 
         const bookings = await Booking.find(filter)
-            .populate({ path: "customer_id", select: "name phone_number" })
-            .populate({ path: "service_id", select: "name duration_minutes" })
-            .populate({ path: "slot_id", select: "start_time end_time" })
+            .populate("provider_id")
+            .populate("service_id")
+            .populate("slot_id")
             .sort({ created_at: -1 });
 
-        res.json(bookings);
+        return res.json(bookings);
     } catch (err) {
-        console.error("List provider bookings error:", err);
-        res.status(500).json({ message: "Failed to fetch bookings" });
+        console.error("List my bookings error:", err);
+        return res.status(500).json({ message: "Failed to fetch your bookings" });
     }
-};
+}
 
-// PATCH /api/bookings/:id/confirm — provider accepts a pending booking
-exports.confirmBooking = async (req, res) => {
+// GET /api/bookings/provider — the logged-in provider's incoming bookings
+async function listProviderBookings(req, res) {
     try {
         const providerId = await getMyProviderProfileId(req.session.userId);
         if (!providerId) {
             return res.status(400).json({ message: "You don't have a provider profile" });
         }
 
-        const booking = await Booking.findOneAndUpdate(
-            { _id: req.params.id, provider_id: providerId, status: "pending" },
-            { $set: { status: "confirmed", confirmed_at: new Date() } },
-            { new: true }
-        );
+        const { status } = req.query;
+        const filter = { provider_id: providerId };
+        if (status && status !== "all") filter.status = status;
 
-        if (!booking) {
-            return res.status(404).json({ message: "Pending booking not found, not yours, or already actioned" });
+        const bookings = await Booking.find(filter)
+            .populate("customer_id", "name email phone_number")
+            .populate("service_id")
+            .populate("slot_id")
+            .sort({ created_at: -1 });
+
+        return res.json(bookings);
+    } catch (err) {
+        console.error("List provider bookings error:", err);
+        return res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+}
+
+// PATCH /api/bookings/:id/confirm — provider accepts a pending booking
+async function confirmBooking(req, res) {
+    try {
+        const providerId = await getMyProviderProfileId(req.session.userId);
+        if (!providerId) {
+            return res.status(400).json({ message: "You don't have a provider profile" });
         }
 
-        res.json({ message: "Booking confirmed", booking });
+        const booking = await Booking.findOne({ _id: req.params.id, provider_id: providerId });
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found or does not belong to you" });
+        }
+        if (booking.status !== "pending") {
+            return res.status(400).json({ message: `Cannot confirm booking in '${booking.status}' status` });
+        }
+
+        booking.status = "confirmed";
+        booking.confirmed_at = new Date();
+        await booking.save();
+
+        const updatedBooking = await Booking.findById(booking._id)
+            .populate("customer_id", "name email phone_number")
+            .populate("service_id")
+            .populate("slot_id");
+
+        return res.json({ message: "Booking confirmed", booking: updatedBooking });
     } catch (err) {
         console.error("Confirm booking error:", err);
-        res.status(500).json({ message: "Failed to confirm booking" });
+        return res.status(500).json({ message: "Failed to confirm booking" });
     }
-};
+}
 
 // PATCH /api/bookings/:id/complete — provider marks a confirmed booking done
 // (this is what unlocks the customer's ability to leave a review)
-exports.completeBooking = async (req, res) => {
+async function completeBooking(req, res) {
     try {
         const providerId = await getMyProviderProfileId(req.session.userId);
         if (!providerId) {
             return res.status(400).json({ message: "You don't have a provider profile" });
         }
 
-        const booking = await Booking.findOneAndUpdate(
-            { _id: req.params.id, provider_id: providerId, status: "confirmed" },
-            { $set: { status: "completed", completed_at: new Date() } },
-            { new: true }
-        );
-
+        const booking = await Booking.findOne({ _id: req.params.id, provider_id: providerId });
         if (!booking) {
-            return res.status(404).json({ message: "Confirmed booking not found, not yours, or already actioned" });
+            return res.status(404).json({ message: "Booking not found or does not belong to you" });
+        }
+        if (booking.status !== "confirmed") {
+            return res
+                .status(400)
+                .json({ message: `Only confirmed bookings can be marked completed (current: '${booking.status}')` });
         }
 
-        res.json({ message: "Booking marked as completed", booking });
+        booking.status = "completed";
+        booking.completed_at = new Date();
+        await booking.save();
+
+        const updatedBooking = await Booking.findById(booking._id)
+            .populate("customer_id", "name email phone_number")
+            .populate("service_id")
+            .populate("slot_id");
+
+        return res.json({ message: "Booking marked as completed", booking: updatedBooking });
     } catch (err) {
         console.error("Complete booking error:", err);
-        res.status(500).json({ message: "Failed to complete booking" });
+        return res.status(500).json({ message: "Failed to complete booking" });
     }
-};
+}
 
 // PATCH /api/bookings/:id/cancel — customer or provider cancels a
 // pending/confirmed booking. Frees the slot immediately (SRS §8).
-// If the booking was already CONFIRMED and the CUSTOMER is the one
-// cancelling, it counts as a cancellation warning against their account
-// (SRS §8) — cancelling while still pending never counts.
-exports.cancelBooking = async (req, res) => {
+//
+// FR-15 + senior dev decision: the 24-hour cutoff applies to BOTH customer
+// AND provider cancellations, not just the customer. (If this decision
+// wasn't actually confirmed with your senior dev/PM, flag it — a provider
+// being blocked from cancelling their own booking within 24h is a real
+// behavior change worth double-checking before it ships.)
+//
+// Cancellation-warning + suspension only applies when the CUSTOMER cancels
+// a booking the provider had already CONFIRMED — cancelling while still
+// pending never counts, and providers cancelling never counts against the
+// customer.
+//
+// Wrapped in a transaction (unlike a prior version of this function): if
+// the process died between freeing the slot and saving the booking status,
+// the slot could be stuck "booked" forever with no booking to match it.
+async function cancelBooking(req, res) {
     const session = await mongoose.startSession();
     try {
         let result;
+        let suspended = false;
 
         await session.withTransaction(async () => {
-            const booking = await Booking.findById(req.params.id).session(session);
-            if (!booking) throw httpError(404, "Booking not found");
+            const userId = req.session.userId;
+            const userRole = req.session.role;
 
-            const isCustomer = req.session.role === "customer" && booking.customer_id.toString() === req.session.userId.toString();
+            let booking;
             let isProvider = false;
-            if (req.session.role === "provider") {
-                const providerId = await getMyProviderProfileId(req.session.userId);
-                isProvider = providerId && booking.provider_id.toString() === providerId.toString();
+            if (userRole === "customer") {
+                booking = await Booking.findOne({ _id: req.params.id, customer_id: userId }).session(session);
+            } else if (userRole === "provider") {
+                const providerId = await getMyProviderProfileId(userId);
+                if (!providerId) throw httpError(400, "You don't have a provider profile");
+                booking = await Booking.findOne({ _id: req.params.id, provider_id: providerId }).session(session);
+                isProvider = true;
             }
 
-            if (!isCustomer && !isProvider) {
-                throw httpError(403, "You can only cancel your own bookings");
-            }
+            if (!booking) throw httpError(404, "Booking not found or access denied");
 
             if (!["pending", "confirmed"].includes(booking.status)) {
-                throw httpError(400, "Only pending or confirmed bookings can be cancelled");
+                throw httpError(400, `Cannot cancel a booking that is already '${booking.status}'`);
+            }
+
+            const slot = await AvailabilitySlot.findById(booking.slot_id).session(session);
+            if (slot) {
+                const hoursUntilAppointment = (slot.start_time - new Date()) / (1000 * 60 * 60);
+                if (hoursUntilAppointment < MIN_NOTICE_HOURS) {
+                    throw httpError(
+                        400,
+                        `Bookings can only be cancelled at least ${MIN_NOTICE_HOURS} hours before the appointment. Please contact ${isProvider ? "the customer" : "the provider"} directly.`
+                    );
+                }
             }
 
             const wasConfirmed = booking.status === "confirmed";
@@ -255,11 +312,12 @@ exports.cancelBooking = async (req, res) => {
 
             // Warning only applies when a CUSTOMER cancels a booking the
             // provider had already confirmed.
-            if (isCustomer && wasConfirmed) {
+            if (!isProvider && wasConfirmed) {
                 const customer = await User.findById(booking.customer_id).session(session);
                 customer.cancellation_warning_count += 1;
-                if (customer.cancellation_warning_count >= CANCELLATION_WARNING_THRESHOLD) {
+                if (customer.cancellation_warning_count >= CANCELLATION_WARNING_THRESHOLD && !customer.is_suspended) {
                     customer.is_suspended = true;
+                    suspended = true;
                 }
                 await customer.save({ session });
             }
@@ -267,7 +325,17 @@ exports.cancelBooking = async (req, res) => {
             result = booking;
         });
 
-        return res.json({ message: "Booking cancelled", booking: result });
+        const updatedBooking = await Booking.findById(result._id)
+            .populate("customer_id", "name email phone_number")
+            .populate("service_id")
+            .populate("slot_id");
+
+        return res.json({
+            message: suspended
+                ? "Booking cancelled. Your account has been suspended due to repeated cancellations of confirmed bookings."
+                : "Booking cancelled",
+            booking: updatedBooking,
+        });
     } catch (err) {
         if (err.statusCode) {
             return res.status(err.statusCode).json({ message: err.message });
@@ -277,4 +345,19 @@ exports.cancelBooking = async (req, res) => {
     } finally {
         session.endSession();
     }
+}
+
+function httpError(statusCode, message) {
+    const err = new Error(message);
+    err.statusCode = statusCode;
+    return err;
+}
+
+module.exports = {
+    createBooking,
+    listMyBookings,
+    listProviderBookings,
+    confirmBooking,
+    completeBooking,
+    cancelBooking,
 };
