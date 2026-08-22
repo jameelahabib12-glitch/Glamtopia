@@ -19,10 +19,29 @@ const app = express();
 
 // --- Core middleware ---
 app.use(express.json());
+
+// CORS: kept as a safety net for anyone who insists on serving the
+// frontend from a separate dev server. NOTE: this does NOT fix session
+// cookies across origins — browsers block cookies on cross-site
+// fetch/XHR requests regardless of CORS headers unless the cookie is
+// SameSite=None + Secure (HTTPS), which local dev doesn't have. The
+// real fix is below: Express now serves the frontend itself, so the
+// whole app runs on ONE origin (http://localhost:5000) and this
+// problem can't happen at all. Always open pages via that URL, not
+// through Live Server or any other separate dev server/port.
+const isProd = process.env.NODE_ENV === "production";
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true, // required so the session cookie is sent/received
+    origin: isProd
+      ? process.env.CLIENT_URL
+      : (origin, callback) => {
+        if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+          return callback(null, true);
+        }
+        callback(new Error("Not allowed by CORS: " + origin));
+      },
+    credentials: true,
   })
 );
 
@@ -47,8 +66,8 @@ app.use(
 );
 
 // --- Routes ---
-app.get("/", (req, res) => {
-  res.send("GLAMTOPIA SERVER IS WORKING ❤️");
+app.get("/api/health", (req, res) => {
+  res.json({ message: "Glamtopia API is running" });
 });
 
 app.use("/api/auth", authRoutes);
@@ -63,6 +82,23 @@ app.use("/api/bookings", bookingRoutes);
 
 // Serve uploaded profile photos statically (e.g. GET /uploads/profile-photos/xyz.jpg)
 app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
+
+// --- Serve the frontend itself, so the whole app is ONE origin ---
+// (http://localhost:5000) and session cookies always work, with no CORS
+// or SameSite gymnastics needed. Open pages via this server going
+// forward — e.g. http://localhost:5000/register.html,
+// http://localhost:5000/client/profile-provider.html — instead of
+// through Live Server or any other separate dev server/port.
+const path = require("path");
+
+// Block direct access to the backend source/.env BEFORE the static
+// handler below — otherwise express.static would happily serve
+// http://localhost:5000/server/.env to anyone who asked.
+app.use("/server", (req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+app.use(express.static(path.join(__dirname, "..")));
 
 // --- 404 handler ---
 app.use((req, res) => {
