@@ -1,86 +1,106 @@
+const mongoose = require("mongoose");
 const Booking = require("../models/Booking");
 const AvailabilitySlot = require("../models/AvailabilitySlot");
 const Service = require("../models/Service");
 const ProviderProfile = require("../models/ProviderProfile");
 const User = require("../models/User");
 
-// Helper: resolve logged-in user's ProviderProfile ID
+// SRS §7: "tunable constant" — confirmed with team as 3.
+const CANCELLATION_WARNING_THRESHOLD = 3;
+
 async function getMyProviderProfileId(userId) {
   const profile = await ProviderProfile.findOne({ user_id: userId });
   return profile ? profile._id : null;
 }
 
 // POST /api/bookings
-// Customer creates a new booking and atomically claims the availability slot
+// Customer creates a new booking. Per SRS §6 Technical Constraints, the
+// slot-claim and booking-creation are wrapped in a real MongoDB
+// multi-document ACID transaction: if booking creation fails after the
+// slot was claimed, the ENTIRE operation rolls back automatically —
+// no manual "undo" logic needed, and no risk of a slot being stuck
+// marked booked with no matching booking record.
 async function createBooking(req, res) {
+  const { serviceId, slotId } = req.body;
+
+  if (typeof serviceId !== "string" || typeof slotId !== "string") {
+    return res.status(400).json({ message: "serviceId and slotId are required" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(serviceId) || !mongoose.Types.ObjectId.isValid(slotId)) {
+    return res.status(400).json({ message: "Invalid serviceId or slotId" });
+  }
+
+  const service = await Service.findById(serviceId);
+  if (!service || service.is_active === false) {
+    return res.status(404).json({ message: "Service not found or inactive" });
+  }
+
+  const slot = await AvailabilitySlot.findById(slotId);
+  if (!slot) {
+    return res.status(404).json({ message: "Availability slot not found" });
+  }
+
+  if (slot.provider_id.toString() !== service.provider_id.toString()) {
+    return res.status(400).json({ message: "Slot does not belong to the service provider" });
+  }
+
+  const session = await mongoose.startSession();
+  let booking = null;
+  let slotWasTaken = false;
+
   try {
-    const { serviceId, slotId } = req.body;
+    await session.withTransaction(async () => {
+      // Atomic claim, INSIDE the transaction — matches SRS §6 exactly.
+      const claimedSlot = await AvailabilitySlot.findOneAndUpdate(
+        { _id: slotId, booked: false },
+        { $set: { booked: true } },
+        { new: true, session }
+      );
 
-    if (!serviceId || !slotId) {
-      return res.status(400).json({ message: "serviceId and slotId are required" });
-    }
+      if (!claimedSlot) {
+        slotWasTaken = true;
+        // Throwing inside withTransaction aborts and rolls back automatically.
+        throw new Error("SLOT_ALREADY_TAKEN");
+      }
 
-    // Verify service exists and is active
-    const service = await Service.findById(serviceId);
-    if (!service || service.is_active === false) {
-      return res.status(404).json({ message: "Service not found or inactive" });
-    }
+      const created = await Booking.create(
+        [
+          {
+            customer_id: req.session.userId,
+            provider_id: service.provider_id,
+            service_id: service._id,
+            slot_id: slot._id,
+            status: "pending",
+            price_at_booking: service.price,
+          },
+        ],
+        { session }
+      );
 
-    // Verify slot exists
-    const slot = await AvailabilitySlot.findById(slotId);
-    if (!slot) {
-      return res.status(404).json({ message: "Availability slot not found" });
-    }
-
-    // Ensure slot matches service provider
-    if (slot.provider_id.toString() !== service.provider_id.toString()) {
-      return res.status(400).json({ message: "Slot does not belong to the service provider" });
-    }
-
-    // Atomic double-booking guard: attempt to claim the open slot
-    const claimedSlot = await AvailabilitySlot.findOneAndUpdate(
-      { _id: slotId, booked: false },
-      { $set: { booked: true } },
-      { new: true }
-    );
-
-    if (!claimedSlot) {
-      return res.status(409).json({ message: "That slot was just taken. Pick another time below." });
-    }
-
-    let booking;
-    try {
-      booking = await Booking.create({
-        customer_id: req.session.userId,
-        provider_id: service.provider_id,
-        service_id: service._id,
-        slot_id: slot._id,
-        status: "pending",
-        price_at_booking: service.price,
-      });
-    } catch (err) {
-      // Revert slot status if booking creation fails
-      await AvailabilitySlot.findByIdAndUpdate(slotId, { $set: { booked: false } });
-      throw err;
-    }
-
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate("provider_id")
-      .populate("service_id")
-      .populate("slot_id");
-
-    return res.status(201).json({
-      message: "Booking created successfully",
-      booking: populatedBooking,
+      booking = created[0];
     });
   } catch (err) {
+    if (slotWasTaken) {
+      return res.status(409).json({ message: "That slot was just taken. Pick another time below." });
+    }
     console.error("Create booking error:", err);
-    return res.status(500).json({ message: "Failed to create booking", error: err.message });
+    return res.status(500).json({ message: "Failed to create booking" });
+  } finally {
+    session.endSession();
   }
+
+  const populatedBooking = await Booking.findById(booking._id)
+    .populate("provider_id")
+    .populate("service_id")
+    .populate("slot_id");
+
+  return res.status(201).json({
+    message: "Booking created successfully",
+    booking: populatedBooking,
+  });
 }
 
 // GET /api/bookings/mine
-// Customer views their own bookings
 async function listMyBookings(req, res) {
   try {
     const { status } = req.query;
@@ -104,7 +124,6 @@ async function listMyBookings(req, res) {
 }
 
 // GET /api/bookings/provider
-// Provider views incoming bookings
 async function listProviderBookings(req, res) {
   try {
     const providerId = await getMyProviderProfileId(req.session.userId);
@@ -133,7 +152,6 @@ async function listProviderBookings(req, res) {
 }
 
 // PATCH /api/bookings/:id/confirm
-// Provider confirms a pending booking
 async function confirmBooking(req, res) {
   try {
     const providerId = await getMyProviderProfileId(req.session.userId);
@@ -141,11 +159,7 @@ async function confirmBooking(req, res) {
       return res.status(404).json({ message: "Provider profile not found" });
     }
 
-    const booking = await Booking.findOne({
-      _id: req.params.id,
-      provider_id: providerId,
-    });
-
+    const booking = await Booking.findOne({ _id: req.params.id, provider_id: providerId });
     if (!booking) {
       return res.status(404).json({ message: "Booking not found or does not belong to you" });
     }
@@ -171,7 +185,6 @@ async function confirmBooking(req, res) {
 }
 
 // PATCH /api/bookings/:id/complete
-// Provider marks a confirmed booking as completed
 async function completeBooking(req, res) {
   try {
     const providerId = await getMyProviderProfileId(req.session.userId);
@@ -179,11 +192,7 @@ async function completeBooking(req, res) {
       return res.status(404).json({ message: "Provider profile not found" });
     }
 
-    const booking = await Booking.findOne({
-      _id: req.params.id,
-      provider_id: providerId,
-    });
-
+    const booking = await Booking.findOne({ _id: req.params.id, provider_id: providerId });
     if (!booking) {
       return res.status(404).json({ message: "Booking not found or does not belong to you" });
     }
@@ -209,7 +218,10 @@ async function completeBooking(req, res) {
 }
 
 // PATCH /api/bookings/:id/cancel
-// Either customer or provider can cancel an active booking
+// FR-15 + senior dev decision:
+//   - 24-hour cutoff applies to BOTH customer and provider cancellations.
+//   - Warning count + suspension only applies when the CUSTOMER cancels
+//     a booking that was already CONFIRMED.
 async function cancelBooking(req, res) {
   try {
     const userId = req.session.userId;
@@ -234,13 +246,39 @@ async function cancelBooking(req, res) {
       return res.status(400).json({ message: `Cannot cancel a booking that is already '${booking.status}'` });
     }
 
+    const slot = await AvailabilitySlot.findById(booking.slot_id);
+    if (slot) {
+      const hoursUntilAppointment = (slot.start_time - new Date()) / (1000 * 60 * 60);
+      if (hoursUntilAppointment < 24) {
+        return res.status(400).json({
+          message: "Bookings can only be cancelled up to 24 hours before the appointment",
+        });
+      }
+    }
+
+    const wasConfirmed = booking.status === "confirmed";
+
     booking.status = "cancelled";
     booking.cancelled_at = new Date();
     await booking.save();
 
-    // Free up the availability slot so another customer can book it
     if (booking.slot_id) {
       await AvailabilitySlot.findByIdAndUpdate(booking.slot_id, { $set: { booked: false } });
+    }
+
+    let suspended = false;
+    if (userRole === "customer" && wasConfirmed) {
+      const customer = await User.findByIdAndUpdate(
+        userId,
+        { $inc: { cancellation_warning_count: 1 } },
+        { new: true }
+      );
+
+      if (customer.cancellation_warning_count >= CANCELLATION_WARNING_THRESHOLD && !customer.is_suspended) {
+        customer.is_suspended = true;
+        await customer.save();
+        suspended = true;
+      }
     }
 
     const updatedBooking = await Booking.findById(booking._id)
@@ -248,7 +286,12 @@ async function cancelBooking(req, res) {
       .populate("service_id")
       .populate("slot_id");
 
-    return res.json({ message: "Booking cancelled successfully", booking: updatedBooking });
+    return res.json({
+      message: suspended
+        ? "Booking cancelled. Your account has been suspended due to repeated cancellations of confirmed bookings."
+        : "Booking cancelled successfully",
+      booking: updatedBooking,
+    });
   } catch (err) {
     console.error("Cancel booking error:", err);
     return res.status(500).json({ message: "Failed to cancel booking" });

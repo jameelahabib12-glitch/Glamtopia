@@ -116,6 +116,7 @@ async function main() {
       email: `customer${rand}@test.com`,
       password: "password123",
       role: "customer",
+      phone_number: "0300-1234567",
     }),
   });
   captureCookies(registerCustomerRes, customerCookies);
